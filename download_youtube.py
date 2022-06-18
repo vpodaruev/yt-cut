@@ -8,72 +8,88 @@ from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
 import sys
 
-class MainWindow(QMainWindow):
-    def __init__(self, *args, **kwargs):
-        super(QMainWindow, self).__init__(*args, **kwargs)
 
-        ytUrlLabel = QLabel("Youtube link:")
-        ytUrlLineEdit = QLineEdit()
-        ytUrlLineEdit.setPlaceholderText("youtube link")
-        self.ytUrlLineEdit = ytUrlLineEdit
-        ytUrlLayout = QHBoxLayout()
-        ytUrlLayout.addWidget(ytUrlLabel)
-        ytUrlLayout.addWidget(ytUrlLineEdit)
+class MainWindow(QMainWindow):
+    def __yt_url (self):
+        label = QLabel("Youtube link:")
+        lineEdit = QLineEdit()
+        lineEdit.setPlaceholderText("youtube link / ютуб ссылка")
+        self.ytUrlLineEdit = lineEdit
         
+        layout = QHBoxLayout()
+        layout.addWidget(label)
+        layout.addWidget(lineEdit)
+        return layout
+    
+    def __excerpt (self):
         fromLabel = QLabel("Cut from:")
         fromLineEdit = QLineEdit()
         fromLineEdit.setPlaceholderText("00:00:00")
         self.fromLineEdit = fromLineEdit
+        
         toLabel = QLabel("to:")
         toLineEdit = QLineEdit()
         toLineEdit.setPlaceholderText("00:00:00")
         self.toLineEdit = toLineEdit
-        timeLayout = QHBoxLayout()
-        timeLayout.addWidget(fromLabel)
-        timeLayout.addWidget(fromLineEdit)
-        timeLayout.addSpacing(5)
-        timeLayout.addWidget(toLabel)
-        timeLayout.addWidget(toLineEdit)
-
+        
+        layout = QHBoxLayout()
+        layout.addWidget(fromLabel)
+        layout.addWidget(fromLineEdit)
+        layout.addSpacing(5)
+        layout.addWidget(toLabel)
+        layout.addWidget(toLineEdit)
+        return layout
+    
+    def __save_as(self):
         saveAsLabel = QLabel("Save as:")
         saveAsLineEdit = QLineEdit()
-        saveAsLineEdit.setPlaceholderText("output file")
+        saveAsLineEdit.setPlaceholderText("output file / файл, куда сохранить")
         self.saveAsLineEdit = saveAsLineEdit
+        
         saveAsPushButton = QPushButton()
         saveAsPushButton.setIcon(QIcon("saveAs.png"))
         saveAsPushButton.clicked.connect(self.get_filename)
-        saveAsLayout = QHBoxLayout()
-        saveAsLayout.addWidget(saveAsLabel)
-        saveAsLayout.addWidget(saveAsLineEdit)
-        saveAsLayout.addWidget(saveAsPushButton)
-
-        downloadPushButton = QPushButton("Download")
-        downloadPushButton.setIcon(QIcon("download.png"))
-        downloadPushButton.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         
-        aboutLabel = QLabel("<font color=\"Grey\"><i>Created with love by AllatRa IT team</i></font color>")
-        aboutLabel.setTextFormat(Qt.TextFormat.RichText)
-
+        layout = QHBoxLayout()
+        layout.addWidget(saveAsLabel)
+        layout.addWidget(saveAsLineEdit)
+        layout.addWidget(saveAsPushButton)
+        return layout
+    
+    def get_filename(self):
+        file, filter = QFileDialog.getSaveFileName(self, caption="Save As",
+                                                   directory=Path.cwd().as_posix(),
+                                                   filter="Video Files (*.mp4)")
+        self.saveAsLineEdit.setText(file)
+    
+    def __download(self):
+        pushButton = QPushButton("Download / Загрузить")
+        pushButton.setIcon(QIcon("download.png"))
+        pushButton.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.downloadPushButton = pushButton
+        return pushButton
+    
+    def __about(self):
+        label = QLabel("<font color=\"Grey\"><i>Created with love by AllatRa IT team</i></font>")
+        label.setTextFormat(Qt.TextFormat.RichText)
+        return label
+    
+    def __init__(self, *args, **kwargs):
+        super(QMainWindow, self).__init__(*args, **kwargs)
+        
         mainLayout = QVBoxLayout()
-        mainLayout.addLayout(ytUrlLayout)
-        mainLayout.addLayout(timeLayout)
-        mainLayout.addLayout(saveAsLayout)
-        mainLayout.addWidget(downloadPushButton, stretch=1)
-        mainLayout.addWidget(aboutLabel,
+        mainLayout.addLayout(self.__yt_url())
+        mainLayout.addLayout(self.__excerpt())
+        mainLayout.addLayout(self.__save_as())
+        mainLayout.addWidget(self.__download())
+        mainLayout.addWidget(self.__about(),
                              alignment=Qt.AlignmentFlag.AlignRight)
         widget = QWidget()
         widget.setLayout(mainLayout)
-
+        
         self.setCentralWidget(widget)
         self.setWindowTitle("Youtube Cut")
         self.setWindowIcon(QIcon("cs-logo.jpg"))
-
-    def get_filename (self):
-        filename, filter = QFileDialog.getSaveFileName(self, caption="Save As",
-                                                       directory=Path.cwd().as_posix(),
-                                                       filter="Video Files (*.mp4)")
-        self.saveAsLineEdit.setText(filename)
-        
 
 
 def direct_links(youtube_dl, url):
