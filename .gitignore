@@ -1,5 +1,6 @@
 dist/
 build/
 .ipynb*/
+*.exe
 *.mp4
 *.spec
