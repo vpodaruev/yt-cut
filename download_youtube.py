@@ -57,18 +57,35 @@ class YoutubeVideo:
         p = sp.run([f"{args.youtube_dl}", "-g", f"{self.url}"],
                     capture_output=True, encoding="utf-8", check=True)
         return p.stdout.split()
-
-
-def download(urls, start, end, filename):
-    try :
+    
+    def download(self, filename, start, end):
+        video, audio = self.download_urls()
         sp.run ([f"{args.ffmpeg}", "-y", "-loglevel", "quiet",
-                 "-ss", f"{start}", "-to", f"{end}", "-i", f"{urls[0]}",
-                 "-ss", f"{start}", "-to", f"{end}", "-i", f"{urls[1]}",
+                 "-ss", f"{start}", "-to", f"{end}", "-i", f"{video}",
+                 "-ss", f"{start}", "-to", f"{end}", "-i", f"{audio}",
                  "-c", "copy", f"{filename}"],
                  stdin=sp.DEVNULL, stdout=sp.DEVNULL, stderr=sp.DEVNULL, check=True)
-    except sp.SubprocessError as e :
-        with open("err.log", "a") as log :
-            print (e, file=log)
+
+
+class GoButton(QPushButton):
+    go_next = pyqtSignal(bool)
+    
+    def __init__(self, *args, **kwargs):
+        super(QPushButton, self).__init__(*args, **kwargs)
+        self.__next = False
+        self.__toggle()
+        self.clicked.connect(self.__toggle)
+    
+    def __toggle(self):
+        if self.__next:
+            self.setIcon(QIcon("go-prev.png"))
+            self.setToolTip("Edit / Редактировать")
+            self.__next = False
+        else:
+            self.setIcon(QIcon("go-next.png"))
+            self.setToolTip("Go! / Поехали дальше!")
+            self.__next = True
+        self.go_next.emit(self.__next)
 
 
 class MainWindow(QMainWindow):
@@ -89,6 +106,9 @@ class MainWindow(QMainWindow):
         
         self.set_step1_enabled(False)
         self.set_step2_enabled(False)
+        
+#         add about button with CS sign... upload to GitHub to spread info about CS
+#         change window icon to Serpinsky carpet in a circle
         
         self.setCentralWidget(widget)
         self.setWindowTitle("Youtube Cut - Share the positive / Делись позитивом")
@@ -119,9 +139,10 @@ class MainWindow(QMainWindow):
         lineEdit.setPlaceholderText("youtube link / ютуб ссылка")
         self.ytUrlLineEdit = lineEdit
         
-        pushButton = QPushButton()
-        pushButton.setIcon(QIcon("go-next.png"))
-        pushButton.setToolTip("Go! / Поехали!")
+        # pushButton = QPushButton()
+        # pushButton.setIcon(QIcon("go-next.png"))
+        # pushButton.setToolTip("Go! / Поехали!")
+        pushButton = GoButton()
         pushButton.clicked.connect(self.yt_url_changed)
         
         layout = QHBoxLayout()
@@ -144,7 +165,7 @@ class MainWindow(QMainWindow):
             self.set_step1_enabled(True)
             self.ytTitle.show()
         except NotYoutubeURL as e:
-            QMessageBox.warning(self, "Warning", f"'{url}' is not a YouTube URL / это не Ютуб ссылка")
+            QMessageBox.warning(self, "Warning", f"URL: '{url}'\n It doesn't seem to be a YouTube link / Похоже, что это не ютуб-ссылка")
             self.ytUrlLineEdit.clear()
         except sp.CalledProcessError as e:
             QMessageBox.critical(self, "Error", f"{e}\n\n{e.stderr}")
