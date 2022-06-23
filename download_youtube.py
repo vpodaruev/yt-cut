@@ -68,32 +68,82 @@ class YoutubeVideo:
 
 
 class GoButton(QPushButton):
-    go_next = pyqtSignal(bool)
-    
     def __init__(self, *args, **kwargs):
-        super(QPushButton, self).__init__(*args, **kwargs)
-        self.__next = False
-        self.__toggle()
-        self.clicked.connect(self.__toggle)
+        super().__init__(*args, **kwargs)
+        self.next = False
+        self.toggle()
     
-    def __toggle(self):
-        if self.__next:
+    def toggle(self):
+        if self.next:
             self.setIcon(QIcon("go-prev.png"))
             self.setToolTip("Edit / Редактировать")
-            self.__next = False
+            self.next = False
         else:
             self.setIcon(QIcon("go-next.png"))
             self.setToolTip("Go! / Поехали дальше!")
-            self.__next = True
-        self.go_next.emit(self.__next)
+            self.next = True
+
+        
+class YoutubeLink(QWidget):
+    got_link = pyqtSignal(YoutubeVideo)
+    edit_link = pyqtSignal()
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        label = QLabel("Youtube link:")
+        lineEdit = QLineEdit()
+        lineEdit.setPlaceholderText("youtube link / ютуб ссылка")
+        self.linkLineEdit = lineEdit
+        
+        goButton = GoButton()
+        goButton.clicked.connect(self.link_edited)
+        self.goButton = goButton
+        
+        layout = QHBoxLayout()
+        layout.addWidget(label)
+        layout.addWidget(lineEdit)
+        layout.addWidget(goButton)
+        self.setLayout(layout)
+    
+    def link_edited(self):
+        if not self.goButton.next:
+            self.linkLineEdit.selectAll()
+            self.linkLineEdit.setEnabled(True)
+            self.goButton.toggle()
+            self.linkLineEdit.setFocus(Qt.FocusReason.OtherFocusReason)
+            self.edit_link.emit()
+            return
+        
+        url = self.linkLineEdit.text()
+        if not url:
+            return
+        elif url.isspace():
+            self.linkLineEdit.clear()
+            return
+        
+        try:
+            v = YoutubeVideo(url)
+            self.linkLineEdit.setEnabled(False)
+            self.goButton.toggle()
+            self.got_link.emit(v)
+        except NotYoutubeURL as e:
+            QMessageBox.warning(self.parent(), "Warning", f"URL: '{url}'\n It doesn't seem to be a YouTube link / Похоже, что это не ютуб-ссылка")
+            self.linkLineEdit.clear()
+        except sp.CalledProcessError as e:
+            QMessageBox.critical(self.parent(), "Error", f"{e}\n\n{e.stderr}")
+            self.linkLineEdit.clear()
 
 
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super(QMainWindow, self).__init__(*args, **kwargs)
         
+        self.ytLink = YoutubeLink()
+        self.ytLink.got_link.connect(self.yt_link_edited)
+        
         mainLayout = QVBoxLayout()
-        mainLayout.addLayout(self.__yt_url())
+        mainLayout.addWidget(self.ytLink)
         mainLayout.addWidget(self.__yt_title(),
                              alignment=Qt.AlignmentFlag.AlignCenter)
         mainLayout.addLayout(self.__excerpt())
@@ -132,44 +182,13 @@ class MainWindow(QMainWindow):
         label.hide()
         self.ytTitle = label
         return label
-
-    def __yt_url(self):
-        label = QLabel("Youtube link:")
-        lineEdit = QLineEdit()
-        lineEdit.setPlaceholderText("youtube link / ютуб ссылка")
-        self.ytUrlLineEdit = lineEdit
-        
-        # pushButton = QPushButton()
-        # pushButton.setIcon(QIcon("go-next.png"))
-        # pushButton.setToolTip("Go! / Поехали!")
-        pushButton = GoButton()
-        pushButton.clicked.connect(self.yt_url_changed)
-        
-        layout = QHBoxLayout()
-        layout.addWidget(label)
-        layout.addWidget(lineEdit)
-        layout.addWidget(pushButton)
-        return layout
     
-    def yt_url_changed(self):
-        url = self.ytUrlLineEdit.text()
-        if not url:
-            return
-        elif url.isspace():
-            self.ytUrlLineEdit.clear()
-            return
-        try:
-            self.ytVideo = YoutubeVideo(url)
-            self.ytTitle.setText("<b>"+ self.ytVideo.channel +"</b>: "+ self.ytVideo.title)
-            self.toLineEdit.setPlaceholderText(self.ytVideo.duration)
-            self.set_step1_enabled(True)
-            self.ytTitle.show()
-        except NotYoutubeURL as e:
-            QMessageBox.warning(self, "Warning", f"URL: '{url}'\n It doesn't seem to be a YouTube link / Похоже, что это не ютуб-ссылка")
-            self.ytUrlLineEdit.clear()
-        except sp.CalledProcessError as e:
-            QMessageBox.critical(self, "Error", f"{e}\n\n{e.stderr}")
-            self.ytUrlLineEdit.clear()
+    def yt_link_edited(self, video):
+        self.ytVideo = video
+        self.ytTitle.setText("<b>"+ video.channel +"</b>: "+ video.title)
+        self.toLineEdit.setPlaceholderText(video.duration)
+        self.set_step1_enabled(True)
+        self.ytTitle.show()
     
     def __excerpt(self):
         fromLabel = QLabel("Cut from:")
