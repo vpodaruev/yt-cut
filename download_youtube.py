@@ -294,7 +294,9 @@ class MainWindow(QMainWindow):
     def got_interval(self):
         p = Path.cwd() / sanitize_filename(self.ytVideo.title)
         p = p.with_stem(p.stem + self.timeSpan.as_suffix() +".mp4")
-        self.saveAsLineEdit.setPlaceholderText(str(p))
+        path = str(p)
+        self.saveAsLineEdit.setPlaceholderText(path)
+        self.saveAsLineEdit.setToolTip(path)
         self.set_step2_enabled(True)
     
     def edit_interval(self):
@@ -321,8 +323,6 @@ class MainWindow(QMainWindow):
         dirname = self.saveAsLineEdit.text().strip()
         if not dirname:
             dirname = "."
-        elif not Path(dirname).is_dir():
-            dirname = Path(dirname).parent.as_posix()
         file, filter = QFileDialog.getSaveFileName(self, caption="Save As",
                                                    directory=dirname,
                                                    filter="Video Files (*.mp4)")
