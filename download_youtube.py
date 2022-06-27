@@ -185,11 +185,12 @@ class TimeSpan(QWidget):
     
     def init(self):
         self.clear_interval()
-        self.fromLineEdit.setPlaceholderText("00:00:00")
-        self.fromLineEdit.setToolTip("min 0")
+        zero = to_hhmmss(0)
+        self.fromLineEdit.setPlaceholderText(zero)
+        self.fromLineEdit.setToolTip(f"min {zero}")
         self.fromLineEdit.setEnabled(True)
-        self.toLineEdit.setPlaceholderText("00:00:00")
-        self.toLineEdit.setToolTip("max 0")
+        self.toLineEdit.setPlaceholderText(zero)
+        self.toLineEdit.setToolTip(f"max {zero}")
         self.toLineEdit.setEnabled(True)
         if not self.goButton.next:
             self.goButton.toggle()
