@@ -87,25 +87,34 @@ class YoutubeLink(QWidget):
         super().__init__(*args, **kwargs)
         
         label = QLabel("Youtube link:")
-        lineEdit = QLineEdit()
-        lineEdit.setPlaceholderText("youtube link / ютуб ссылка")
-        self.linkLineEdit = lineEdit
+        self.linkLineEdit = QLineEdit()
+        self.linkLineEdit.setPlaceholderText("youtube link / ютуб ссылка")
         
-        goButton = GoButton()
-        goButton.clicked.connect(self.link_edited)
-        self.goButton = goButton
+        self.goButton = GoButton()
+        self.goButton.clicked.connect(self.link_edited)
         
-        layout = QHBoxLayout()
-        layout.addWidget(label)
-        layout.addWidget(lineEdit)
-        layout.addWidget(goButton)
+        hLayout = QHBoxLayout()
+        hLayout.addWidget(label)
+        hLayout.addWidget(self.linkLineEdit)
+        hLayout.addWidget(self.goButton)
+        
+        self.titleLabel = QLabel()
+        self.titleLabel.setTextFormat(Qt.TextFormat.RichText)
+        self.titleLabel.hide()
+        
+        layout = QVBoxLayout()
+        layout.addLayout(hLayout)
+        layout.addWidget(self.titleLabel,
+                         alignment=Qt.AlignmentFlag.AlignCenter)
         self.setLayout(layout)
     
     def link_edited(self):
         if not self.goButton.next:
+            self.titleLabel.setText("")
+            self.titleLabel.hide()
+            self.goButton.toggle()
             self.linkLineEdit.selectAll()
             self.linkLineEdit.setEnabled(True)
-            self.goButton.toggle()
             self.linkLineEdit.setFocus(Qt.FocusReason.OtherFocusReason)
             self.edit_link.emit()
             return
@@ -121,6 +130,8 @@ class YoutubeLink(QWidget):
             v = YoutubeVideo(url)
             self.linkLineEdit.setEnabled(False)
             self.goButton.toggle()
+            self.titleLabel.setText("<b>"+ v.channel +"</b>: "+ v.title)
+            self.titleLabel.show()
             self.got_link.emit(v)
         except NotYoutubeURL as e:
             QMessageBox.warning(self.parent(), "Warning", f"URL: '{url}'\n It doesn't seem to be a YouTube link / Похоже, что это не ютуб-ссылка")
@@ -170,6 +181,7 @@ class TimeSpan(QWidget):
         layout.addWidget(goButton)
         self.setLayout(layout)
         self.init()
+        self.setEnabled(False)
     
     def init(self):
         self.clear_interval()
@@ -181,7 +193,6 @@ class TimeSpan(QWidget):
         self.toLineEdit.setEnabled(True)
         if not self.goButton.next:
             self.goButton.toggle()
-        self.setEnabled(False)
     
     def set_duration(self, duration):
         self.duration = duration
@@ -247,8 +258,6 @@ class MainWindow(QMainWindow):
         
         mainLayout = QVBoxLayout()
         mainLayout.addWidget(self.ytLink)
-        mainLayout.addWidget(self.__yt_title(),
-                             alignment=Qt.AlignmentFlag.AlignCenter)
         mainLayout.addWidget(self.timeSpan)
         mainLayout.addLayout(self.__save_as())
         mainLayout.addWidget(self.__download())
@@ -272,24 +281,14 @@ class MainWindow(QMainWindow):
         self.downloadPushButton.setEnabled(ok)
         return
     
-    def __yt_title(self):
-        label = QLabel()
-        label.setTextFormat(Qt.TextFormat.RichText)
-        label.hide()
-        self.ytTitle = label
-        return label
-    
     def got_yt_link(self, video):
         self.ytVideo = video
-        self.ytTitle.setText("<b>"+ video.channel +"</b>: "+ video.title)
         self.timeSpan.set_duration(video.duration)
         self.timeSpan.setEnabled(True)
-        self.ytTitle.show()
     
     def edit_yt_link(self):
-        self.ytTitle.setText("")
         self.timeSpan.init()
-        self.ytTitle.hide()
+        self.timeSpan.setEnabled(False)
     
     def got_interval(self):
         p = Path.cwd() / sanitize_filename(self.ytVideo.title)
