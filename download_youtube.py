@@ -1,6 +1,6 @@
 import argparse
 import subprocess as sp
-import json
+import json, re
 
 from pathlib import Path
 from urllib.parse import urlparse
@@ -16,23 +16,18 @@ def to_hhmmss(seconds, delim=":"):
     seconds = int(seconds)
     minutes = seconds // 60
     hours = minutes // 60
-    d = f"{seconds - 60*minutes:02d}"
-    if minutes:
-        d = f"{minutes - 60*hours:02d}" + delim + d
-    if hours:
-        d = f"{hours:02d}" + delim + d
-    return d
+    return f"{hours:02d}{delim}{minutes - 60*hours:02d}{delim}{seconds - 60*minutes:02d}"
 
 
 def to_seconds(hhmmss):
-    t = hhmmss.rsplit(":,.'")
+    t = re.split(r"[:,.']", hhmmss)
     if len(t) == 1:
-        return hhmmss
+        return int(hhmmss)
     elif len(t) == 2:
         mm, ss = t
-        return str(int(mm)*60 + int(ss))
+        return int(mm)*60 + int(ss)
     hh, mm, ss = t
-    return str((int(hh)*60 + int(mm))*60 + int(ss))
+    return (int(hh)*60 + int(mm))*60 + int(ss)
 
 
 class NotYoutubeURL(RuntimeError):
@@ -83,7 +78,7 @@ class GoButton(QPushButton):
             self.setToolTip("Go! / Поехали дальше!")
             self.next = True
 
-        
+
 class YoutubeLink(QWidget):
     got_link = pyqtSignal(YoutubeVideo)
     edit_link = pyqtSignal()
@@ -135,18 +130,126 @@ class YoutubeLink(QWidget):
             self.linkLineEdit.clear()
 
 
+def getLineEditValue(lineEdit):
+    text = lineEdit.text().strip()
+    if not text:
+        text = lineEdit.placeholderText()
+    return text
+
+
+class TimeSpan(QWidget):
+    got_interval = pyqtSignal()
+    edit_interval = pyqtSignal()
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        timingPattern = QRegularExpression("((\d{1,2}[:,.']){1,2}\d{1,2})|(\d+)")
+        timingValidator = QRegularExpressionValidator(timingPattern)
+        
+        fromLabel = QLabel("Cut from:")
+        fromLineEdit = QLineEdit()
+        fromLineEdit.setValidator(timingValidator)
+        self.fromLineEdit = fromLineEdit
+        
+        toLabel = QLabel("to:")
+        toLineEdit = QLineEdit()
+        toLineEdit.setValidator(timingValidator)
+        self.toLineEdit = toLineEdit
+        
+        goButton = GoButton()
+        goButton.clicked.connect(self.interval_edited)
+        self.goButton = goButton
+        
+        layout = QHBoxLayout()
+        layout.addWidget(fromLabel)
+        layout.addWidget(fromLineEdit)
+        layout.addSpacing(5)
+        layout.addWidget(toLabel)
+        layout.addWidget(toLineEdit)
+        layout.addWidget(goButton)
+        self.setLayout(layout)
+        self.init()
+    
+    def init(self):
+        self.clear_interval()
+        self.fromLineEdit.setPlaceholderText("00:00:00")
+        self.fromLineEdit.setToolTip("min 0")
+        self.fromLineEdit.setEnabled(True)
+        self.toLineEdit.setPlaceholderText("00:00:00")
+        self.toLineEdit.setToolTip("max 0")
+        self.toLineEdit.setEnabled(True)
+        if not self.goButton.next:
+            self.goButton.toggle()
+        self.setEnabled(False)
+    
+    def set_duration(self, duration):
+        self.duration = duration
+        self.toLineEdit.setPlaceholderText(duration)
+        self.toLineEdit.setToolTip(f"max {duration}")
+        self.goButton.setEnabled(True)
+    
+    def get_interval(self):
+        return getLineEditValue(self.fromLineEdit), getLineEditValue(self.toLineEdit)
+    
+    def set_interval(self, start, finish):
+        self.fromLineEdit.setText(to_hhmmss(start))
+        self.toLineEdit.setText(to_hhmmss(finish))
+    
+    def clear_interval(self):
+        self.fromLineEdit.setText("")
+        self.toLineEdit.setText("")
+    
+    def check_and_beautify(self):
+        s, f = getLineEditValue(self.fromLineEdit), getLineEditValue(self.toLineEdit)
+        si, fi = to_seconds(s), to_seconds(f)
+        if fi < si:
+            raise ValueError(f"The initial value ({s}) must be smaller than the final value ({f}) / Начальное значение ({s}) должно быть меньше конечного ({f})!")
+        elif to_seconds(self.duration) < fi:
+            raise ValueError(f"The final value ({f}) must not exceed the duration ({self.duration}) / Конечное значение ({s}) не должно превышать продолжительность ({self.duration})!")
+        self.set_interval(si, fi)
+    
+    def interval_edited(self):
+        try:
+            self.check_and_beautify()
+        except ValueError as e:
+            QMessageBox.warning(self.parent(), "Warning", str(e))
+            return
+        
+        if self.goButton.next:
+            self.fromLineEdit.setEnabled(False)
+            self.toLineEdit.setEnabled(False)
+            self.got_interval.emit()
+        else:
+            self.fromLineEdit.setEnabled(True)
+            self.toLineEdit.setEnabled(True)
+            self.edit_interval.emit()
+        self.goButton.toggle()
+    
+    def as_suffix(self):
+        s, f = self.get_interval()
+        s, f = s.replace(":", "."), f.replace(":", ".")
+        return f"_{s}-{f}"
+
+
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super(QMainWindow, self).__init__(*args, **kwargs)
         
         self.ytLink = YoutubeLink()
-        self.ytLink.got_link.connect(self.yt_link_edited)
+        self.ytLink.got_link.connect(self.got_yt_link)
+        self.ytLink.edit_link.connect(self.edit_yt_link)
+        
+        self.timeSpan = TimeSpan()
+        self.timeSpan.setEnabled(False)
+        self.timeSpan.got_interval.connect(self.got_interval)
+        self.timeSpan.edit_interval.connect(self.edit_interval)
         
         mainLayout = QVBoxLayout()
         mainLayout.addWidget(self.ytLink)
         mainLayout.addWidget(self.__yt_title(),
                              alignment=Qt.AlignmentFlag.AlignCenter)
-        mainLayout.addLayout(self.__excerpt())
+        mainLayout.addWidget(self.timeSpan)
         mainLayout.addLayout(self.__save_as())
         mainLayout.addWidget(self.__download())
         mainLayout.addWidget(self.__about(),
@@ -154,7 +257,6 @@ class MainWindow(QMainWindow):
         widget = QWidget()
         widget.setLayout(mainLayout)
         
-        self.set_step1_enabled(False)
         self.set_step2_enabled(False)
         
 #         add about button with CS sign... upload to GitHub to spread info about CS
@@ -163,12 +265,6 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
         self.setWindowTitle("Youtube Cut - Share the positive / Делись позитивом")
         self.setWindowIcon(QIcon("cs-logo.jpg"))
-    
-    def set_step1_enabled(self, ok):
-        self.fromLineEdit.setEnabled(ok)
-        self.toLineEdit.setEnabled(ok)
-        self.excerptGoPushButton.setEnabled(ok)
-        return
     
     def set_step2_enabled(self, ok):
         self.saveAsLineEdit.setEnabled(ok)
@@ -183,46 +279,26 @@ class MainWindow(QMainWindow):
         self.ytTitle = label
         return label
     
-    def yt_link_edited(self, video):
+    def got_yt_link(self, video):
         self.ytVideo = video
         self.ytTitle.setText("<b>"+ video.channel +"</b>: "+ video.title)
-        self.toLineEdit.setPlaceholderText(video.duration)
-        self.set_step1_enabled(True)
+        self.timeSpan.set_duration(video.duration)
+        self.timeSpan.setEnabled(True)
         self.ytTitle.show()
     
-    def __excerpt(self):
-        fromLabel = QLabel("Cut from:")
-        fromLineEdit = QLineEdit()
-        fromLineEdit.setPlaceholderText("00:00:00")
-        self.fromLineEdit = fromLineEdit
-        
-        toLabel = QLabel("to:")
-        toLineEdit = QLineEdit()
-        toLineEdit.setPlaceholderText("00:00:00")
-        self.toLineEdit = toLineEdit
-        
-        pushButton = QPushButton()
-        pushButton.setIcon(QIcon("go-next.png"))
-        pushButton.setToolTip("Go! / Поехали!")
-        pushButton.clicked.connect(self.excerpt_changed)
-        self.excerptGoPushButton = pushButton
-        
-        layout = QHBoxLayout()
-        layout.addWidget(fromLabel)
-        layout.addWidget(fromLineEdit)
-        layout.addSpacing(5)
-        layout.addWidget(toLabel)
-        layout.addWidget(toLineEdit)
-        layout.addWidget(pushButton)
-        return layout
+    def edit_yt_link(self):
+        self.ytTitle.setText("")
+        self.timeSpan.init()
+        self.ytTitle.hide()
     
-    def excerpt_changed(self):
-        s, f = self.fromLineEdit.text(), self.toLineEdit.text()
-        s, f = s.replace(":", "."), f.replace(":", ".")
+    def got_interval(self):
         p = Path.cwd() / sanitize_filename(self.ytVideo.title)
-        p = p.with_stem(p.stem + f"_{s}-{f}.mp4")
-        self.saveAsLineEdit.setText(str(p))
+        p = p.with_stem(p.stem + self.timeSpan.as_suffix() +".mp4")
+        self.saveAsLineEdit.setPlaceholderText(str(p))
         self.set_step2_enabled(True)
+    
+    def edit_interval(self):
+        pass
     
     def __save_as(self):
         saveAsLabel = QLabel("Save as:")
