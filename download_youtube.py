@@ -320,7 +320,7 @@ class MainWindow(QMainWindow):
         return layout
     
     def get_filename(self):
-        dirname = self.saveAsLineEdit.text().strip()
+        dirname = getLineEditValue(self.saveAsLineEdit)
         if not dirname:
             dirname = "."
         file, filter = QFileDialog.getSaveFileName(self, caption="Save As",
@@ -328,6 +328,7 @@ class MainWindow(QMainWindow):
                                                    filter="Video Files (*.mp4)")
         if file:
             self.saveAsLineEdit.setText(file)
+            self.saveAsLineEdit.setToolTip(file)
     
     def __download(self):
         pushButton = QPushButton("Download / Загрузить")
