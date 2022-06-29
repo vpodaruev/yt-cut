@@ -5,9 +5,9 @@ import argparse
 from pathlib import Path
 from pathvalidate import sanitize_filename
 
-from PyQt6.QtGui import *
-from PyQt6.QtWidgets import *
-from PyQt6.QtCore import *
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QSizePolicy, QMainWindow, QApplication
 import sys
 
 from utils import *
