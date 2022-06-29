@@ -9,7 +9,7 @@ from utils import *
 
 
 class TimeSpan(QWidget):
-    got_interval = pyqtSignal()
+    got_interval = pyqtSignal(str, str)
     edit_interval = pyqtSignal()
     
     def __init__(self, *args, **kwargs):
@@ -40,10 +40,10 @@ class TimeSpan(QWidget):
         layout.addWidget(toLineEdit)
         layout.addWidget(goButton)
         self.setLayout(layout)
-        self.init()
+        self.reset()
         self.setEnabled(False)
     
-    def init(self):
+    def reset(self):
         self.clear_interval()
         zero = to_hhmmss(0)
         self.fromLineEdit.setPlaceholderText(zero)
@@ -93,14 +93,9 @@ class TimeSpan(QWidget):
         if self.goButton.next:
             self.fromLineEdit.setEnabled(False)
             self.toLineEdit.setEnabled(False)
-            self.got_interval.emit()
+            self.got_interval.emit(*self.get_interval())
         else:
             self.fromLineEdit.setEnabled(True)
             self.toLineEdit.setEnabled(True)
             self.edit_interval.emit()
         self.goButton.toggle()
-    
-    def as_suffix(self):
-        s, f = self.get_interval()
-        s, f = s.replace(":", "."), f.replace(":", ".")
-        return f"_{s}-{f}"

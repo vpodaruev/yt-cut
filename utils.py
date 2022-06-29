@@ -19,3 +19,8 @@ def to_seconds(hhmmss):
         return int(mm)*60 + int(ss)
     hh, mm, ss = t
     return (int(hh)*60 + int(mm))*60 + int(ss)
+
+
+def as_suffix(start, finish):
+    start, finish = start.replace(":", "."), finish.replace(":", ".")
+    return f"_{start}-{finish}"

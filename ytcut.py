@@ -10,10 +10,10 @@ from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
 import sys
 
-from gui import *
 from utils import *
 from ytlink import *
 from timespan import *
+from saveas import *
 import ytvideo
 
 
@@ -36,17 +36,18 @@ class MainWindow(QMainWindow):
         self.timeSpan.got_interval.connect(self.got_interval)
         self.timeSpan.edit_interval.connect(self.edit_interval)
         
+        self.saveAs = SaveAsFile()
+        self.saveAs.setEnabled(False)
+        
         mainLayout = QVBoxLayout()
         mainLayout.addWidget(self.ytLink)
         mainLayout.addWidget(self.timeSpan)
-        mainLayout.addLayout(self.__save_as())
+        mainLayout.addWidget(self.saveAs)
         mainLayout.addWidget(self.__download())
         mainLayout.addWidget(AboutLabel(),
                              alignment=Qt.AlignmentFlag.AlignRight)
         widget = QWidget()
         widget.setLayout(mainLayout)
-        
-        self.set_step2_enabled(False)
         
 #         add about button with CS sign... upload to GitHub to spread info about CS
 #         change window icon to Serpinsky carpet in a circle
@@ -55,60 +56,28 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("YtCut - Share the positive / Делись позитивом")
         self.setWindowIcon(QIcon("cs-logo.jpg"))
     
-    def set_step2_enabled(self, ok):
-        self.saveAsLineEdit.setEnabled(ok)
-        self.saveAsPushButton.setEnabled(ok)
-        self.downloadPushButton.setEnabled(ok)
-        return
-    
     def got_yt_link(self, video):
         self.ytVideo = video
         self.timeSpan.set_duration(video.duration)
         self.timeSpan.setEnabled(True)
     
     def edit_yt_link(self):
-        self.timeSpan.init()
+        self.timeSpan.reset()
         self.timeSpan.setEnabled(False)
+        self.saveAs.setEnabled(False)
     
-    def got_interval(self):
-        file = sanitize_filename(self.ytVideo.title) + self.timeSpan.as_suffix() +".mp4"
-        self.saveAsLineEdit.setPlaceholderText(file)
-        self.saveAsLineEdit.setToolTip(file)
-        self.set_step2_enabled(True)
+    def got_interval(self, start, finish):
+        file = sanitize_filename(self.ytVideo.title) + as_suffix(start, finish) +".mp4"
+        self.saveAs.set_filename(file)
+        self.saveAs.setEnabled(True)
+        self.downloadPushButton.setEnabled(True)
     
     def edit_interval(self):
-        pass
+        self.saveAs.setEnabled(False)
+        self.downloadPushButton.setEnabled(False)
     
     def download(self):
-        print(getLineEditValue(self.saveAsLineEdit))
-    
-    def __save_as(self):
-        saveAsLabel = QLabel("Save as:")
-        saveAsLineEdit = QLineEdit()
-        saveAsLineEdit.setPlaceholderText("output file / файл, куда сохранить")
-        self.saveAsLineEdit = saveAsLineEdit
-        
-        saveAsPushButton = QPushButton()
-        saveAsPushButton.setIcon(QIcon("saveAs.png"))
-        saveAsPushButton.clicked.connect(self.get_filename)
-        self.saveAsPushButton = saveAsPushButton
-        
-        layout = QHBoxLayout()
-        layout.addWidget(saveAsLabel)
-        layout.addWidget(saveAsLineEdit)
-        layout.addWidget(saveAsPushButton)
-        return layout
-    
-    def get_filename(self):
-        dirname = getLineEditValue(self.saveAsLineEdit)
-        if not dirname:
-            dirname = "."
-        file, filter = QFileDialog.getSaveFileName(self, caption="Save As",
-                                                   directory=dirname,
-                                                   filter="Video Files (*.mp4)")
-        if file:
-            self.saveAsLineEdit.setText(file)
-            self.saveAsLineEdit.setToolTip(file)
+        print(self.saveAs.get_filename())
     
     def __download(self):
         pushButton = QPushButton("Download / Загрузить")
