@@ -1,6 +1,7 @@
 dist/
 build/
 .ipynb*/
+__pycache__/
 *.exe
 *.mp4
 *.spec
