@@ -52,7 +52,7 @@ class MainWindow(QMainWindow):
 #         change window icon to Serpinsky carpet in a circle
         
         self.setCentralWidget(widget)
-        self.setWindowTitle("Youtube Cut - Share the positive / Делись позитивом")
+        self.setWindowTitle("YtCut - Share the positive / Делись позитивом")
         self.setWindowIcon(QIcon("cs-logo.jpg"))
     
     def set_step2_enabled(self, ok):
