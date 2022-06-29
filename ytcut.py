@@ -17,9 +17,15 @@ from timespan import *
 import ytvideo
 
 
+class AboutLabel(QLabel):
+    def __init__(self):
+        super().__init__("<font color=\"Grey\"><i>Created with<font color=\"Red\">&#10084;</font> by AllatRa IT team</i></font>")
+        self.setTextFormat(Qt.TextFormat.RichText)
+
+
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
-        super(QMainWindow, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         
         self.ytLink = YoutubeLink()
         self.ytLink.got_link.connect(self.got_yt_link)
@@ -35,7 +41,7 @@ class MainWindow(QMainWindow):
         mainLayout.addWidget(self.timeSpan)
         mainLayout.addLayout(self.__save_as())
         mainLayout.addWidget(self.__download())
-        mainLayout.addWidget(self.__about(),
+        mainLayout.addWidget(AboutLabel(),
                              alignment=Qt.AlignmentFlag.AlignRight)
         widget = QWidget()
         widget.setLayout(mainLayout)
@@ -112,11 +118,6 @@ class MainWindow(QMainWindow):
         pushButton.clicked.connect(self.download)
         self.downloadPushButton = pushButton
         return pushButton
-    
-    def __about(self):
-        label = QLabel("<font color=\"Grey\"><i>Created with love by AllatRa IT team</i></font>")
-        label.setTextFormat(Qt.TextFormat.RichText)
-        return label
 
 
 if __name__ == "__main__":
