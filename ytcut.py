@@ -23,6 +23,13 @@ class AboutLabel(QLabel):
         self.setTextFormat(Qt.TextFormat.RichText)
 
 
+class DownloadButton(QPushButton):
+    def __init__(self):
+        super().__init__("Download / Загрузить")
+        self.setIcon(QIcon("download.png"))
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+
+
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -32,18 +39,23 @@ class MainWindow(QMainWindow):
         self.ytLink.edit_link.connect(self.edit_yt_link)
         
         self.timeSpan = TimeSpan()
-        self.timeSpan.setEnabled(False)
         self.timeSpan.got_interval.connect(self.got_interval)
         self.timeSpan.edit_interval.connect(self.edit_interval)
+        self.timeSpan.setEnabled(False)
         
         self.saveAs = SaveAsFile()
         self.saveAs.setEnabled(False)
+        
+        self.downloadButton = DownloadButton()
+        self.downloadButton.clicked.connect(self.download)
+        self.downloadButton.setEnabled(False)
+        self.saveAs.changed.connect(self.downloadButton.setEnabled)
         
         mainLayout = QVBoxLayout()
         mainLayout.addWidget(self.ytLink)
         mainLayout.addWidget(self.timeSpan)
         mainLayout.addWidget(self.saveAs)
-        mainLayout.addWidget(self.__download())
+        mainLayout.addWidget(self.downloadButton)
         mainLayout.addWidget(AboutLabel(),
                              alignment=Qt.AlignmentFlag.AlignRight)
         widget = QWidget()
@@ -64,29 +76,23 @@ class MainWindow(QMainWindow):
     def edit_yt_link(self):
         self.timeSpan.reset()
         self.timeSpan.setEnabled(False)
+        self.saveAs.reset()
         self.saveAs.setEnabled(False)
     
     def got_interval(self, start, finish):
         file = sanitize_filename(self.ytVideo.title) + as_suffix(start, finish) +".mp4"
         self.saveAs.set_filename(file)
         self.saveAs.setEnabled(True)
-        self.downloadPushButton.setEnabled(True)
     
     def edit_interval(self):
+        self.saveAs.reset()
         self.saveAs.setEnabled(False)
-        self.downloadPushButton.setEnabled(False)
     
     def download(self):
-        print(self.saveAs.get_filename())
-    
-    def __download(self):
-        pushButton = QPushButton("Download / Загрузить")
-        pushButton.setIcon(QIcon("download.png"))
-        pushButton.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        pushButton.setEnabled(False)
-        pushButton.clicked.connect(self.download)
-        self.downloadPushButton = pushButton
-        return pushButton
+        file = self.saveAs.get_filename()
+        if not file.endswith(".mp4"):
+            file = file +".mp4"
+        print(file)
 
 
 if __name__ == "__main__":

@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 
-from PyQt6.QtCore import pyqtSignal, Qt
+from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QLineEdit, QFileDialog, QHBoxLayout
 
 
 class SaveAsFile(QWidget):
+    changed = pyqtSignal(bool)
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
         saveAsLabel = QLabel("Save as:")
         saveAsLineEdit = QLineEdit()
         saveAsLineEdit.setPlaceholderText("file where to save / файл, куда сохранить")
-        saveAsLineEdit.textChanged.connect(saveAsLineEdit.setToolTip)
+        saveAsLineEdit.textChanged.connect(self.filename_changed)
         self.saveAsLineEdit = saveAsLineEdit
         
         saveAsPushButton = QPushButton()
@@ -25,6 +27,13 @@ class SaveAsFile(QWidget):
         layout.addWidget(saveAsLineEdit)
         layout.addWidget(saveAsPushButton)
         self.setLayout(layout)
+    
+    def filename_changed(self, file):
+        self.saveAsLineEdit.setToolTip(file)
+        self.changed.emit(bool(file))
+    
+    def reset(self):
+        self.saveAsLineEdit.clear()
     
     def set_filename(self, file):
         if not file:
