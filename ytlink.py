@@ -37,7 +37,7 @@ class YoutubeLink(QWidget):
         self.setLayout(layout)
     
     def link_edited(self):
-        if not self.goButton.next:
+        if not self.goButton.on:
             self.titleLabel.setText("")
             self.titleLabel.hide()
             self.goButton.toggle()
@@ -62,7 +62,7 @@ class YoutubeLink(QWidget):
             self.titleLabel.show()
             self.got_link.emit(v)
         except NotYoutubeURL as e:
-            QMessageBox.warning(self.parent(), "Warning", f"URL: '{url}'\n It doesn't seem to be a YouTube link / Похоже, что это не ютуб-ссылка")
+            QMessageBox.warning(self.parent(), "Warning", f"URL: '{url}'\n It doesn't seem to be a YouTube link / Похоже, это не ютуб-ссылка")
             self.linkLineEdit.clear()
         except sp.CalledProcessError as e:
             QMessageBox.critical(self.parent(), "Error", f"{e}\n\n{e.stderr}")

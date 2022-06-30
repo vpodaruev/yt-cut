@@ -52,7 +52,7 @@ class TimeSpan(QWidget):
         self.toLineEdit.setPlaceholderText(zero)
         self.toLineEdit.setToolTip(f"max {zero}")
         self.toLineEdit.setEnabled(True)
-        if not self.goButton.next:
+        if not self.goButton.on:
             self.goButton.toggle()
     
     def set_duration(self, duration):
@@ -90,7 +90,7 @@ class TimeSpan(QWidget):
             QMessageBox.warning(self.parent(), "Warning", str(e))
             return
         
-        if self.goButton.next:
+        if self.goButton.on:
             self.fromLineEdit.setEnabled(False)
             self.toLineEdit.setEnabled(False)
             self.got_interval.emit(*self.get_interval())
