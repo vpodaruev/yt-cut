@@ -7,7 +7,7 @@ from pathvalidate import sanitize_filename
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QSizePolicy, QMainWindow, QApplication
+from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QSizePolicy, QMessageBox, QMainWindow, QApplication
 import sys
 
 from utils import *
@@ -23,10 +23,11 @@ class AboutLabel(QLabel):
         self.setTextFormat(Qt.TextFormat.RichText)
 
 
-class DownloadButton(QPushButton):
+class DownloadButton(ToggleSwitch):    
     def __init__(self):
-        super().__init__("Download / Загрузить")
-        self.setIcon(QIcon("download.png"))
+        views = [(QIcon("cancel.png"),   "Cancel / Отменить",    ""),
+                 (QIcon("download.png"), "Download / Загрузить", "")]
+        super().__init__(views)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
 
@@ -89,10 +90,30 @@ class MainWindow(QMainWindow):
         self.saveAs.setEnabled(False)
     
     def download(self):
-        file = self.saveAs.get_filename()
-        if not file.endswith(".mp4"):
-            file = file +".mp4"
-        print(file)
+        if self.downloadButton.on:
+            self.downloadButton.toggle()
+            self.ytLink.setEnabled(False)
+            self.timeSpan.setEnabled(False)
+            self.saveAs.setEnabled(False)
+            file = self.saveAs.get_filename()
+            if not file.endswith(".mp4"):
+                file = file +".mp4"
+            s, f = self.timeSpan.get_interval()
+            print(file, s, f)
+            try:
+                self.ytVideo.download(file, s, f)
+            except sp.CalledProcessError as e:
+                QMessageBox.critical(self.parent(), "Error", f"{e}\n\n{e.stderr}")
+                self.cancel()
+        else:
+            self.cancel()
+    
+    def cancel(self):
+        print("cancel")
+        self.downloadButton.toggle()
+        self.ytLink.setEnabled(True)
+        self.timeSpan.setEnabled(True)
+        self.saveAs.setEnabled(True)
 
 
 if __name__ == "__main__":
