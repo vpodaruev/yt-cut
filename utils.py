@@ -11,14 +11,11 @@ def to_hhmmss(seconds, delim=":"):
 
 
 def to_seconds(hhmmss):
-    t = re.split(r"[:,.']", hhmmss)
-    if len(t) == 1:
-        return int(hhmmss)
-    elif len(t) == 2:
-        mm, ss = t
-        return int(mm)*60 + int(ss)
-    hh, mm, ss = t
-    return (int(hh)*60 + int(mm))*60 + int(ss)
+    tt = [int(x) if x else 0 for x in re.split(r"[:,.']", hhmmss)]
+    s = 0
+    for x, n in zip(reversed(tt), range(len(tt))):
+        s += x * 60**n
+    return s
 
 
 def as_suffix(start, finish):
