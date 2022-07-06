@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from PyQt6.QtCore import pyqtSignal, Qt, QRegularExpression
+from PyQt6.QtCore import pyqtSignal, pyqtSlot, Qt, QRegularExpression
 from PyQt6.QtGui import QRegularExpressionValidator
 from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout
 
@@ -15,7 +15,7 @@ class TimeSpan(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        timingPattern = QRegularExpression("((\d{1,2}[:,.']){1,2}\d{1,2})|(\d+)")
+        timingPattern = QRegularExpression("\d+([:,.'][0-5]\d){0,2}")
         timingValidator = QRegularExpressionValidator(timingPattern)
         
         fromLabel = QLabel("Cut from:")
@@ -75,7 +75,7 @@ class TimeSpan(QWidget):
     def check_and_beautify(self):
         s, f = getLineEditValue(self.fromLineEdit), getLineEditValue(self.toLineEdit)
         si, fi = to_seconds(s), to_seconds(f)
-        if fi < si:
+        if fi <= si:
             raise ValueError(f"The initial value ({s}) must be smaller than the final value ({f})!"
                              f" / Начальное значение ({s}) должно быть меньше конечного ({f})!")
         elif to_seconds(self.duration) < fi:
@@ -83,6 +83,7 @@ class TimeSpan(QWidget):
                              f" / Конечное значение ({f}) не должно превышать продолжительность ({self.duration})!")
         self.set_interval(si, fi)
     
+    @pyqtSlot()
     def interval_edited(self):
         try:
             self.check_and_beautify()
