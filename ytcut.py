@@ -91,10 +91,11 @@ class MainWindow(QMainWindow):
     
     def download(self):
         if self.downloadButton.on:
-            self.downloadButton.toggle()
             self.ytLink.setEnabled(False)
             self.timeSpan.setEnabled(False)
             self.saveAs.setEnabled(False)
+            self.downloadButton.toggle()
+            
             file = self.saveAs.get_filename()
             if not file.endswith(".mp4"):
                 file = file +".mp4"

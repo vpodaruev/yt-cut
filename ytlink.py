@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from PyQt6.QtCore import pyqtSignal, Qt
+from PyQt6.QtCore import pyqtSignal, pyqtSlot, Qt
 from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QLineEdit, QMessageBox, QHBoxLayout, QVBoxLayout
 
 from gui import *
@@ -30,12 +30,15 @@ class YoutubeLink(QWidget):
         self.titleLabel.setTextFormat(Qt.TextFormat.RichText)
         self.titleLabel.hide()
         
+        self.video = None
+        
         layout = QVBoxLayout()
         layout.addLayout(hLayout)
         layout.addWidget(self.titleLabel,
                          alignment=Qt.AlignmentFlag.AlignCenter)
         self.setLayout(layout)
     
+    @pyqtSlot()
     def link_edited(self):
         if not self.goButton.on:
             self.titleLabel.setText("")
@@ -55,15 +58,28 @@ class YoutubeLink(QWidget):
             return
         
         try:
-            v = YoutubeVideo(url)
-            self.linkLineEdit.setEnabled(False)
-            self.goButton.toggle()
-            self.titleLabel.setText("<b>"+ v.channel +"</b>: "+ v.title)
-            self.titleLabel.show()
-            self.got_link.emit(v)
+            self.video = YoutubeVideo(url)
+            self.video.info_loaded.connect(self.process_info)
+            self.video.error_occured.connect(self.process_error)
+            self.video.request_info()
+            self.setEnabled(False)
         except NotYoutubeURL as e:
-            QMessageBox.warning(self.parent(), "Warning", f"URL: '{url}'\n It doesn't seem to be a YouTube link / Похоже, это не ютуб-ссылка")
+            QMessageBox.warning(self.parent(), "Warning", f"It doesn't seem to be a YouTube link / Похоже, это не ютуб-ссылка\nURL: '{url}'")
             self.linkLineEdit.clear()
-        except sp.CalledProcessError as e:
-            QMessageBox.critical(self.parent(), "Error", f"{e}\n\n{e.stderr}")
-            self.linkLineEdit.clear()
+            self.setEnabled(True)
+    
+    @pyqtSlot(str)
+    def process_error(self, errmsg):
+        QMessageBox.critical(self.parent(), "Error", errmsg)
+        self.linkLineEdit.clear()
+        self.setEnabled(True)
+    
+    @pyqtSlot()
+    def process_info(self):
+        self.setEnabled(True)
+        v, self.video = self.video, None
+        self.linkLineEdit.setEnabled(False)
+        self.goButton.toggle()
+        self.titleLabel.setText("<b>"+ v.channel +"</b>: "+ v.title)
+        self.titleLabel.show()
+        self.got_link.emit(v)
