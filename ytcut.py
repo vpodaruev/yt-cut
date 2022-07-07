@@ -66,6 +66,8 @@ class MainWindow(QMainWindow):
 #         change window icon to Serpinsky carpet in a circle
         
         self.setCentralWidget(widget)
+        self.setMinimumWidth(480)
+        self.setFixedHeight(self.sizeHint().height())
         self.setWindowTitle("YtCut - Share the positive / Делись позитивом")
         self.setWindowIcon(QIcon("cs-logo.jpg"))
     

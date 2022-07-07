@@ -19,6 +19,8 @@ class NotYoutubeURL(RuntimeError):
 class YoutubeVideo(QObject):
     info_loaded = pyqtSignal()
     error_occured = pyqtSignal(str)
+    default_title = "Title / Название"
+    default_channel = "Channel / Канал"
     
     def __init__(self, url):
         super().__init__()
@@ -26,8 +28,8 @@ class YoutubeVideo(QObject):
         if all([item not in netloc for item in {"youtube.com", "youtu.be"}]):
             raise NotYoutubeURL(url)
         self.url = url
-        self.title = "Video Title"
-        self.channel = "Youtube Channel"
+        self.title = self.default_title
+        self.channel = self.default_channel
         self.duration = "0"
         self.p = None
     

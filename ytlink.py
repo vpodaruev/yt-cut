@@ -28,7 +28,8 @@ class YoutubeLink(QWidget):
         
         self.titleLabel = QLabel()
         self.titleLabel.setTextFormat(Qt.TextFormat.RichText)
-        self.titleLabel.hide()
+        self.titleLabel.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        self.reset_title()
         
         self.video = None
         
@@ -38,11 +39,15 @@ class YoutubeLink(QWidget):
                          alignment=Qt.AlignmentFlag.AlignCenter)
         self.setLayout(layout)
     
+    def reset_title(self, **kwargs):
+        channel = kwargs["channel"] if "channel" in kwargs else YoutubeVideo.default_channel
+        title = kwargs["title"] if "title" in kwargs else YoutubeVideo.default_title
+        self.titleLabel.setText("<b>"+ channel +"</b>: "+ title)
+    
     @pyqtSlot()
     def link_edited(self):
         if not self.goButton.on:
-            self.titleLabel.setText("")
-            self.titleLabel.hide()
+            self.reset_title()
             self.goButton.toggle()
             self.linkLineEdit.selectAll()
             self.linkLineEdit.setEnabled(True)
@@ -77,9 +82,8 @@ class YoutubeLink(QWidget):
     @pyqtSlot()
     def process_info(self):
         self.setEnabled(True)
-        v, self.video = self.video, None
         self.linkLineEdit.setEnabled(False)
         self.goButton.toggle()
-        self.titleLabel.setText("<b>"+ v.channel +"</b>: "+ v.title)
-        self.titleLabel.show()
+        v, self.video = self.video, None
+        self.reset_title(channel=v.channel, title=v.title)
         self.got_link.emit(v)
