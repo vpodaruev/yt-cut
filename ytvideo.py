@@ -4,7 +4,8 @@ import json
 import subprocess as sp
 from urllib.parse import urlparse
 
-from PyQt6.QtCore import pyqtSignal, pyqtSlot, QObject, QProcess
+from PyQt6.QtCore import pyqtSignal, pyqtSlot, Qt, QObject, QProcess
+from PyQt6.QtGui import QGuiApplication
 
 from utils import *
 
@@ -48,6 +49,7 @@ class YoutubeVideo(QObject):
         self.p = QProcess()
         self.p.finished.connect(self.process_info)
         self.p.start(str(args.youtube_dl), ["--dump-json", f"{self.url}"])
+        QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
     
     @pyqtSlot()
     def process_info(self):
@@ -61,6 +63,7 @@ class YoutubeVideo(QObject):
             self.channel = js["channel"]
         if "duration" in js:
             self.duration = to_hhmmss(js["duration"])
+        QGuiApplication.restoreOverrideCursor()
         self.info_loaded.emit()
     
     def download_urls(self):
