@@ -74,8 +74,8 @@ class YoutubeLink(QWidget):
             self.setEnabled(True)
     
     @pyqtSlot(str)
-    def process_error(self, errmsg):
-        QMessageBox.critical(self.parent(), "Error", errmsg)
+    def process_error(self, msg):
+        QMessageBox.critical(self.parent(), "Error", msg)
         self.linkLineEdit.clear()
         self.setEnabled(True)
     

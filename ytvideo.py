@@ -33,6 +33,17 @@ class YoutubeVideo(QObject):
         self.duration = "0"
         self.p = None
     
+    def __check_result(self):
+        p, self.p = self.p, None
+        err = bytes(p.readAllStandardError()).decode("utf8")
+        if err:
+            self.error_occured.emit(err)
+        elif p.exitStatus() != QProcess.ExitStatus.NormalExit:
+            self.error_occured.emit(f"Exit with error code {p.error()}.")
+        else:
+            return bytes(p.readAllStandardOutput()).decode("utf8")
+        return None
+    
     def request_info(self):
         self.p = QProcess()
         self.p.finished.connect(self.process_info)
@@ -40,14 +51,9 @@ class YoutubeVideo(QObject):
     
     @pyqtSlot()
     def process_info(self):
-        errout = bytes(self.p.readAllStandardError()).decode("utf8")
-        if errout:
-            self.error_occured.emit(errout)
+        result = self.__check_result()
+        if not result:
             return
-        if self.p.exitStatus() != QProcess.ExitStatus.NormalExit:
-            self.error_occured.emit(f"Exit with error code {self.p.error()}.")
-            return
-        result = bytes(self.p.readAllStandardOutput()).decode("utf8")
         js = json.loads(result)
         if "title" in js:
             self.title = js["title"]
@@ -55,7 +61,6 @@ class YoutubeVideo(QObject):
             self.channel = js["channel"]
         if "duration" in js:
             self.duration = to_hhmmss(js["duration"])
-        self.p = None
         self.info_loaded.emit()
     
     def download_urls(self):
