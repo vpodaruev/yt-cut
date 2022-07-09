@@ -14,7 +14,21 @@ global args  # set in main module
 
 class NotYoutubeURL(RuntimeError):
     def __init__(self, url):
-        super().__init__(f"'{url}' is not a youtube URL")
+        super().__init__(f"Seems not a youtube URL / Похоже, это не ютуб ссылка\nURL: '{url}'")
+
+class CalledProcessError(RuntimeError):
+    def __init__(self, process, msg):
+        super().__init__(msg + f"\n{process.program()} {process.arguments()}")
+
+class TimeoutExpired(CalledProcessError):
+    def __init__(self, process):
+        super().__init__(process, f"Timeout expired, no response / Тайм-аут итёк, ответа нет")
+
+class CalledProcessFailed(CalledProcessError):
+    def __init__(self, process, msg=None):
+        if not msg:
+            msg = "Process finished with errors / Процесс завершился с ошибками"
+        super().__init__(process, msg)
 
 
 class YoutubeVideo(QObject):
@@ -38,12 +52,12 @@ class YoutubeVideo(QObject):
         p, self.p = self.p, None
         err = bytes(p.readAllStandardError()).decode("utf8")
         if err:
-            self.error_occured.emit(err)
+            pass
         elif p.exitStatus() != QProcess.ExitStatus.NormalExit:
-            self.error_occured.emit(f"Exit with error code {p.error()}.")
+            err = f"Exit with error code {p.error()}."
         else:
             return bytes(p.readAllStandardOutput()).decode("utf8")
-        return None
+        raise CalledProcessFailed(p, err)
     
     def request_info(self):
         self.p = QProcess()
@@ -53,23 +67,34 @@ class YoutubeVideo(QObject):
     
     @pyqtSlot()
     def process_info(self):
-        result = self.__check_result()
-        if not result:
-            return
-        js = json.loads(result)
-        if "title" in js:
-            self.title = js["title"]
-        if "channel" in js:
-            self.channel = js["channel"]
-        if "duration" in js:
-            self.duration = to_hhmmss(js["duration"])
         QGuiApplication.restoreOverrideCursor()
-        self.info_loaded.emit()
+        try:
+            js = json.loads(self.__check_result())
+            if "title" in js:
+                self.title = js["title"]
+            if "channel" in js:
+                self.channel = js["channel"]
+            if "duration" in js:
+                self.duration = to_hhmmss(js["duration"])
+            self.info_loaded.emit()
+        except CalledProcessFailed as e:
+            self.error_occured.emit(f"{e}")
     
     def download_urls(self):
-        p = sp.run([f"{args.youtube_dl}", "-g", f"{self.url}"],
-                    capture_output=True, encoding="utf-8", check=True)
-        return p.stdout.split()
+        QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        self.p = QProcess()
+        self.p.start(str(args.youtube_dl), ["-g", f"{self.url}"])
+        if self.p.waitForFinished():
+            QGuiApplication.restoreOverrideCursor()
+            if result := self.__check_result():
+                return result.split()
+            else:
+                p, self.p = self.p, None
+                raise CalledProcessFailed(p)
+        QGuiApplication.restoreOverrideCursor()
+        p, self.p = self.p, None
+        p.kill()
+        raise TimeoutExpired(p)
     
     def download(self, filename, start, end):
         video, audio = self.download_urls()

@@ -105,8 +105,8 @@ class MainWindow(QMainWindow):
             print(file, s, f)
             try:
                 self.ytVideo.download(file, s, f)
-            except sp.CalledProcessError as e:
-                QMessageBox.critical(self.parent(), "Error", f"{e}\n\n{e.stderr}")
+            except CalledProcessError as e:
+                QMessageBox.critical(self.parent(), "Error", f"{e}")
                 self.cancel()
         else:
             self.cancel()
