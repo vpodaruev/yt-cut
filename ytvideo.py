@@ -104,7 +104,7 @@ class YoutubeVideo(QObject):
         self.p.finished.connect(self.finish_download)
         self.p.start(f"{args.ffmpeg}", ["-ss", f"{start}", "-to", f"{end}", "-i", f"{video}",
                                         "-ss", f"{start}", "-to", f"{end}", "-i", f"{audio}",
-                                        "-c", "copy", f"{filename}"])
+                                        "-c", "copy", "-y", f"{filename}"])
     
     def cancel_download(self):
         self.p.kill()

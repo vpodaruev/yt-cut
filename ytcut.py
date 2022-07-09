@@ -94,16 +94,21 @@ class MainWindow(QMainWindow):
         self.saveAs.setEnabled(False)
     
     def download(self):
-        if self.downloadButton.on:
+        if self.downloadButton.on:            
+            file = self.saveAs.get_filename()
+            if not file.endswith(".mp4"):
+                file = file +".mp4"
+            if Path(file).exists():
+                if QMessageBox.question(self.parent(), "Question",
+                                        f"'{file}'\n" \
+                                        "File already exists. Overwrite it? / Файл уже существует. Перезаписать его?") \
+                is QMessageBox.StandardButton.No:
+                    return
+            s, f = self.timeSpan.get_interval()
             self.ytLink.setEnabled(False)
             self.timeSpan.setEnabled(False)
             self.saveAs.setEnabled(False)
             self.downloadButton.toggle()
-            
-            file = self.saveAs.get_filename()
-            if not file.endswith(".mp4"):
-                file = file +".mp4"
-            s, f = self.timeSpan.get_interval()
             print(file, s, f)
             try:
                 self.ytVideo.download(file, s, f)
