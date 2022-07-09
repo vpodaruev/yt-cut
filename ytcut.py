@@ -73,10 +73,12 @@ class MainWindow(QMainWindow):
     
     def got_yt_link(self, video):
         self.ytVideo = video
+        self.ytVideo.finished.connect(self.download_finished)
         self.timeSpan.set_duration(video.duration)
         self.timeSpan.setEnabled(True)
     
     def edit_yt_link(self):
+        self.ytVideo = None
         self.timeSpan.reset()
         self.timeSpan.setEnabled(False)
         self.saveAs.reset()
@@ -107,13 +109,15 @@ class MainWindow(QMainWindow):
                 self.ytVideo.download(file, s, f)
             except CalledProcessError as e:
                 QMessageBox.critical(self.parent(), "Error", f"{e}")
-                self.cancel()
+                self.ytVideo.cancel_download()
         else:
-            self.cancel()
+            print("cancel")
+            self.ytVideo.cancel_download()
     
-    def cancel(self):
-        print("cancel")
-        self.downloadButton.toggle()
+    def download_finished(self):
+        print("ytcut - finished")
+        if not self.downloadButton.on:
+            self.downloadButton.toggle()
         self.ytLink.setEnabled(True)
         self.timeSpan.setEnabled(True)
         self.saveAs.setEnabled(True)

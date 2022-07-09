@@ -33,6 +33,7 @@ class CalledProcessFailed(CalledProcessError):
 
 class YoutubeVideo(QObject):
     info_loaded = pyqtSignal()
+    finished = pyqtSignal()
     error_occured = pyqtSignal(str)
     default_title = "Title / Название"
     default_channel = "Channel / Канал"
@@ -62,7 +63,7 @@ class YoutubeVideo(QObject):
     def request_info(self):
         self.p = QProcess()
         self.p.finished.connect(self.process_info)
-        self.p.start(str(args.youtube_dl), ["--dump-json", f"{self.url}"])
+        self.p.start(f"{args.youtube_dl}", ["--dump-json", f"{self.url}"])
         QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
     
     @pyqtSlot()
@@ -83,7 +84,7 @@ class YoutubeVideo(QObject):
     def download_urls(self):
         QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self.p = QProcess()
-        self.p.start(str(args.youtube_dl), ["-g", f"{self.url}"])
+        self.p.start(f"{args.youtube_dl}", ["-g", f"{self.url}"])
         if self.p.waitForFinished():
             QGuiApplication.restoreOverrideCursor()
             if result := self.__check_result():
@@ -98,8 +99,17 @@ class YoutubeVideo(QObject):
     
     def download(self, filename, start, end):
         video, audio = self.download_urls()
-        sp.run ([f"{args.ffmpeg}", "-loglevel", "quiet",
-                 "-ss", f"{start}", "-to", f"{end}", "-i", f"{video}",
-                 "-ss", f"{start}", "-to", f"{end}", "-i", f"{audio}",
-                 "-c", "copy", f"{filename}"],
-                 stdin=sp.DEVNULL, stdout=sp.DEVNULL, stderr=sp.DEVNULL, check=True)
+        
+        self.p = QProcess()
+        self.p.finished.connect(self.finish_download)
+        self.p.start(f"{args.ffmpeg}", ["-ss", f"{start}", "-to", f"{end}", "-i", f"{video}",
+                                        "-ss", f"{start}", "-to", f"{end}", "-i", f"{audio}",
+                                        "-c", "copy", f"{filename}"])
+    
+    def cancel_download(self):
+        self.p.kill()
+    
+    @pyqtSlot()
+    def finish_download(self):
+        self.p = None
+        self.finished.emit()
