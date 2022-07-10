@@ -18,6 +18,11 @@ def to_seconds(hhmmss):
     return s
 
 
+def from_ffmpeg_time(hhmmss):
+    hh, mm, ss = [float(x) for x in hhmmss.split(":")]
+    return (hh*60 + mm)*60 + ss
+
+
 def as_suffix(start, finish):
     start, finish = start.replace(":", "."), finish.replace(":", ".")
     return f"_{start}-{finish}"

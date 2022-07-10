@@ -33,7 +33,8 @@ class CalledProcessFailed(CalledProcessError):
 
 class YoutubeVideo(QObject):
     info_loaded = pyqtSignal()
-    finished = pyqtSignal()
+    progress = pyqtSignal(float)
+    finished = pyqtSignal(bool)
     error_occured = pyqtSignal(str)
     default_title = "Title / Название"
     default_channel = "Channel / Канал"
@@ -48,6 +49,7 @@ class YoutubeVideo(QObject):
         self.channel = self.default_channel
         self.duration = "0"
         self.p = None
+        self.time_re = re.compile(r"time=((\d\d[:]){2}\d\d[.]\d\d)")
     
     def __check_result(self):
         p, self.p = self.p, None
@@ -101,15 +103,23 @@ class YoutubeVideo(QObject):
         video, audio = self.download_urls()
         
         self.p = QProcess()
+        self.p.readyReadStandardError.connect(self.parse_progress)
         self.p.finished.connect(self.finish_download)
         self.p.start(f"{args.ffmpeg}", ["-ss", f"{start}", "-to", f"{end}", "-i", f"{video}",
                                         "-ss", f"{start}", "-to", f"{end}", "-i", f"{audio}",
                                         "-c", "copy", "-y", f"{filename}"])
     
+    def parse_progress(self):
+        result = bytes(self.p.readAllStandardError()).decode("utf8")
+        if m := re.search(self.time_re, result):
+            time = m.group(1)
+            self.progress.emit(from_ffmpeg_time(time))
+    
     def cancel_download(self):
         self.p.kill()
     
-    @pyqtSlot()
-    def finish_download(self):
+    @pyqtSlot(int, QProcess.ExitStatus)
+    def finish_download(self, code, status):
         self.p = None
-        self.finished.emit()
+        ok = (status == QProcess.ExitStatus.NormalExit) and (code == 0)
+        self.finished.emit(ok)

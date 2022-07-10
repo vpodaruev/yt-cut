@@ -5,9 +5,10 @@ import argparse
 from pathlib import Path
 from pathvalidate import sanitize_filename
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import pyqtSlot, Qt
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout, QSizePolicy, QMessageBox, QMainWindow, QApplication
+from PyQt6.QtWidgets import (QWidget, QLabel, QPushButton, QVBoxLayout, QProgressBar,
+                             QSizePolicy, QMessageBox, QMainWindow, QApplication)
 import sys
 
 from utils import *
@@ -52,11 +53,17 @@ class MainWindow(QMainWindow):
         self.downloadButton.setEnabled(False)
         self.saveAs.changed.connect(self.downloadButton.setEnabled)
         
+        self.progressBar = QProgressBar()
+        self.progressBar.setMaximum(100)
+        self.progressBar.setValue(0)
+        self.duration_in_sec = 1
+        
         mainLayout = QVBoxLayout()
         mainLayout.addWidget(self.ytLink)
         mainLayout.addWidget(self.timeSpan)
         mainLayout.addWidget(self.saveAs)
         mainLayout.addWidget(self.downloadButton)
+        mainLayout.addWidget(self.progressBar)
         mainLayout.addWidget(AboutLabel(),
                              alignment=Qt.AlignmentFlag.AlignRight)
         widget = QWidget()
@@ -71,12 +78,15 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("YtCut - Share the positive / Делись позитивом")
         self.setWindowIcon(QIcon("cs-logo.jpg"))
     
+    @pyqtSlot(YoutubeVideo)
     def got_yt_link(self, video):
         self.ytVideo = video
         self.ytVideo.finished.connect(self.download_finished)
+        self.ytVideo.progress.connect(self.update_progress)
         self.timeSpan.set_duration(video.duration)
         self.timeSpan.setEnabled(True)
     
+    @pyqtSlot()
     def edit_yt_link(self):
         self.ytVideo = None
         self.timeSpan.reset()
@@ -84,15 +94,18 @@ class MainWindow(QMainWindow):
         self.saveAs.reset()
         self.saveAs.setEnabled(False)
     
+    @pyqtSlot(str, str)
     def got_interval(self, start, finish):
         file = sanitize_filename(self.ytVideo.title) + as_suffix(start, finish) +".mp4"
         self.saveAs.set_filename(file)
         self.saveAs.setEnabled(True)
     
+    @pyqtSlot()
     def edit_interval(self):
         self.saveAs.reset()
         self.saveAs.setEnabled(False)
     
+    @pyqtSlot()
     def download(self):
         if self.downloadButton.on:            
             file = self.saveAs.get_filename()
@@ -109,20 +122,26 @@ class MainWindow(QMainWindow):
             self.timeSpan.setEnabled(False)
             self.saveAs.setEnabled(False)
             self.downloadButton.toggle()
-            print(file, s, f)
+            self.duration_in_sec = to_seconds(f) - to_seconds(s)
+            self.progressBar.reset()
             try:
                 self.ytVideo.download(file, s, f)
             except CalledProcessError as e:
                 QMessageBox.critical(self.parent(), "Error", f"{e}")
                 self.ytVideo.cancel_download()
         else:
-            print("cancel")
             self.ytVideo.cancel_download()
     
-    def download_finished(self):
-        print("ytcut - finished")
-        if not self.downloadButton.on:
-            self.downloadButton.toggle()
+    @pyqtSlot(float)
+    def update_progress(self, val):
+        percent = int(val / self.duration_in_sec * 100)
+        self.progressBar.setValue(percent)
+    
+    @pyqtSlot(bool)
+    def download_finished(self, ok):
+        if ok:
+            self.progressBar.setValue(self.progressBar.maximum())
+        self.downloadButton.toggle()
         self.ytLink.setEnabled(True)
         self.timeSpan.setEnabled(True)
         self.saveAs.setEnabled(True)
