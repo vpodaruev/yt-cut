@@ -53,13 +53,13 @@ class YoutubeVideo(QObject):
     
     def __check_result(self):
         p, self.p = self.p, None
-        err = bytes(p.readAllStandardError()).decode("utf8")
+        err = decode(p.readAllStandardError())
         if err:
             pass
         elif p.exitStatus() != QProcess.ExitStatus.NormalExit:
             err = f"Exit with error code {p.error()}."
         else:
-            return bytes(p.readAllStandardOutput()).decode("utf8")
+            return decode(p.readAllStandardOutput())
         raise CalledProcessFailed(p, err)
     
     def request_info(self):
@@ -110,7 +110,7 @@ class YoutubeVideo(QObject):
                                         "-c", "copy", "-y", f"{filename}"])
     
     def parse_progress(self):
-        result = bytes(self.p.readAllStandardError()).decode("utf8")
+        result = decode(self.p.readAllStandardError())
         if m := re.search(self.time_re, result):
             time = m.group(1)
             self.progress.emit(from_ffmpeg_time(time))
