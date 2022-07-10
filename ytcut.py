@@ -5,9 +5,9 @@ import argparse
 from pathlib import Path
 from pathvalidate import sanitize_filename
 
-from PyQt6.QtCore import pyqtSlot, Qt
+from PyQt6.QtCore import pyqtSlot, Qt, QSize
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import (QWidget, QLabel, QPushButton, QVBoxLayout, QProgressBar,
+from PyQt6.QtWidgets import (QWidget, QLabel, QToolButton, QVBoxLayout, QProgressBar,
                              QSizePolicy, QMessageBox, QMainWindow, QApplication)
 import sys
 
@@ -22,6 +22,28 @@ class AboutLabel(QLabel):
     def __init__(self):
         super().__init__("<font color=\"Grey\"><i>Created with<font color=\"Red\">&#10084;</font> by AllatRa IT team</i></font>")
         self.setTextFormat(Qt.TextFormat.RichText)
+
+
+class AboutButton(QToolButton):
+    _about_text = """<p><b><big>YtCut</big></b> - version 1.0-rc
+
+<p>This application is just a wrapper around the console tools <b>youtube-dl</b> and <b>ffmpeg</b>.
+<p>Это приложение - всего лишь обёртка вокруг консольных утилит <b>youtube-dl</b> и <b>ffmpeg</b>.
+
+<p>Inspired by the <a href="https://creativesociety.com">Creative Society</a><font color=\"Red\">&#10084;</font> international project
+"""
+    def __init__(self, size):
+        super().__init__()
+        size = QSize(size, size)
+        self.setIcon(QIcon("cs-logo.jpg"))
+        self.setFixedSize(size)
+        self.setIconSize(0.95*size)
+        self.setAutoRaise(True)
+        self.clicked.connect(self.show_about)
+    
+    @pyqtSlot()
+    def show_about(self):
+        QMessageBox.information(self.parent(), "About", self._about_text)
 
 
 class DownloadButton(ToggleSwitch):    
@@ -66,14 +88,16 @@ class MainWindow(QMainWindow):
         mainLayout.addWidget(self.progressBar)
         mainLayout.addWidget(AboutLabel(),
                              alignment=Qt.AlignmentFlag.AlignRight)
+        layout = QHBoxLayout()
+        layout.addWidget(AboutButton(240))
+        layout.addLayout(mainLayout)
         widget = QWidget()
-        widget.setLayout(mainLayout)
+        widget.setLayout(layout)
         
-#         add about button with CS sign... upload to GitHub to spread info about CS
 #         change window icon to Serpinsky carpet in a circle
         
         self.setCentralWidget(widget)
-        self.setMinimumWidth(480)
+        self.setMinimumWidth(640)
         self.setFixedHeight(self.sizeHint().height())
         self.setWindowTitle("YtCut - Share the positive / Делись позитивом")
         self.setWindowIcon(QIcon("cs-logo.jpg"))
