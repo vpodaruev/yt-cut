@@ -30,7 +30,7 @@ class AboutButton(QToolButton):
 <p>This application is just a wrapper around the console tools <b>youtube-dl</b> and <b>ffmpeg</b>.
 <p>Это приложение - всего лишь обёртка вокруг консольных утилит <b>youtube-dl</b> и <b>ffmpeg</b>.
 
-<p>Inspired by the <a href="https://creativesociety.com">Creative Society</a><font color=\"Red\">&#10084;</font> international project
+<p>Inspired by the <a href="https://creativesociety.com">Creative Society</a> international project
 """
     def __init__(self, size):
         super().__init__()
@@ -172,7 +172,7 @@ class MainWindow(QMainWindow):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Download files from Youtube.")
+    parser = argparse.ArgumentParser(description="Download parts of videos from Youtube")
     parser.add_argument("--youtube-dl", type=Path, default=Path("youtube-dl"),
                         help="path to youtube-dl program [default: %(default)s]")
     parser.add_argument("--ffmpeg", type=Path, default=Path("ffmpeg"),
