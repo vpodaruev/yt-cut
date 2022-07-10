@@ -1,9 +1,9 @@
 @echo off
 
-set DIST=dist
+set DIST=yt-cut
 
 rem Python script to executable
-pyinstaller --onefile --windowed ytcut.py
+pyinstaller --distpath %DIST% --onefile --windowed ytcut.py
 
 rem copy icons
 copy /b cs-logo.jpg %DIST%
