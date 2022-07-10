@@ -14,7 +14,7 @@ class YoutubeLink(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        label = QLabel("Youtube link:")
+        label = QLabel("Link:")
         self.linkLineEdit = QLineEdit()
         self.linkLineEdit.setPlaceholderText("youtube link / ютуб ссылка")
         
@@ -43,6 +43,7 @@ class YoutubeLink(QWidget):
         channel = kwargs["channel"] if "channel" in kwargs else YoutubeVideo.default_channel
         title = kwargs["title"] if "title" in kwargs else YoutubeVideo.default_title
         self.titleLabel.setText("<b>"+ channel +"</b>: "+ title)
+        self.titleLabel.setToolTip(title)
     
     @pyqtSlot()
     def link_edited(self):
