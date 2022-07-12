@@ -51,16 +51,15 @@ class YoutubeVideo(QObject):
         self.p = None
         self.time_re = re.compile(r"time=((\d\d[:]){2}\d\d[.]\d\d)")
     
-    def __check_result(self):
-        p, self.p = self.p, None
-        err = decode(p.readAllStandardError())
+    def _check_result(self):
+        err = decode(self.p.readAllStandardError())
         if err:
             pass
-        elif p.exitStatus() != QProcess.ExitStatus.NormalExit:
-            err = f"Exit with error code {p.error()}."
+        elif self.p.exitStatus() != QProcess.ExitStatus.NormalExit:
+            err = f"Exit with error code {self.p.error()}."
         else:
-            return decode(p.readAllStandardOutput())
-        raise CalledProcessFailed(p, err)
+            return decode(self.p.readAllStandardOutput())
+        raise CalledProcessFailed(self.p, err)
     
     def request_info(self):
         self.p = QProcess()
@@ -72,7 +71,7 @@ class YoutubeVideo(QObject):
     def process_info(self):
         QGuiApplication.restoreOverrideCursor()
         try:
-            js = json.loads(self.__check_result())
+            js = json.loads(self._check_result())
             if "title" in js:
                 self.title = js["title"]
             if "channel" in js:
@@ -82,6 +81,8 @@ class YoutubeVideo(QObject):
             self.info_loaded.emit()
         except CalledProcessFailed as e:
             self.error_occured.emit(f"{e}")
+        finally:
+            self.p = None
     
     def download_urls(self):
         QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
@@ -89,19 +90,15 @@ class YoutubeVideo(QObject):
         self.p.start(f"{args.youtube_dl}", ["-g", f"{self.url}"])
         if self.p.waitForFinished():
             QGuiApplication.restoreOverrideCursor()
-            if result := self.__check_result():
+            if result := self._check_result():
                 return result.split()
             else:
-                p, self.p = self.p, None
                 raise CalledProcessFailed(p)
         QGuiApplication.restoreOverrideCursor()
-        p, self.p = self.p, None
-        p.kill()
         raise TimeoutExpired(p)
     
     def download(self, filename, start, end):
         video, audio = self.download_urls()
-        
         self.p = QProcess()
         self.p.readyReadStandardError.connect(self.parse_progress)
         self.p.finished.connect(self.finish_download)
@@ -109,6 +106,7 @@ class YoutubeVideo(QObject):
                                         "-ss", f"{start}", "-to", f"{end}", "-i", f"{audio}",
                                         "-c", "copy", "-y", f"{filename}"])
     
+    @pyqtSlot()
     def parse_progress(self):
         result = decode(self.p.readAllStandardError())
         if m := re.search(self.time_re, result):
@@ -116,7 +114,10 @@ class YoutubeVideo(QObject):
             self.progress.emit(from_ffmpeg_time(time))
     
     def cancel_download(self):
-        self.p.kill()
+        if self.p.state() == QProcess.ProcessState.NotRunning:
+            self.finish_download(self.p.exitCode(), self.p.exitStatus())
+        else:
+            self.p.kill()
     
     @pyqtSlot(int, QProcess.ExitStatus)
     def finish_download(self, code, status):
