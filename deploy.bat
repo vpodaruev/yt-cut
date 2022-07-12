@@ -14,5 +14,5 @@ copy /b download.png %DIST%
 copy /b cancel.png %DIST%
 
 rem copy tools
-copy /b youtube-dl.exe %DIST%
+copy /b yt-dlp.exe %DIST%
 copy /b ffmpeg.exe %DIST%

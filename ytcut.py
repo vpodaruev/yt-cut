@@ -173,7 +173,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Download parts of videos from Youtube")
-    parser.add_argument("--youtube-dl", type=Path, default=Path("youtube-dl"),
+    parser.add_argument("--youtube-dl", type=Path, default=Path("yt-dlp"),
                         help="path to youtube-dl program [default: %(default)s]")
     parser.add_argument("--ffmpeg", type=Path, default=Path("ffmpeg"),
                         help="path to ffmpeg program [default: %(default)s]")
