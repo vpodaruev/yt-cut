@@ -16,7 +16,7 @@ class YoutubeLink(QWidget):
         
         label = QLabel("Link:")
         self.linkLineEdit = QLineEdit()
-        self.linkLineEdit.setPlaceholderText("youtube link / ютуб ссылка")
+        self.linkLineEdit.setPlaceholderText("video link / ссылка на видео")
         
         self.goButton = GoButton()
         self.goButton.clicked.connect(self.link_edited)

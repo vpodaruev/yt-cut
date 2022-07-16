@@ -2,7 +2,6 @@
 
 import json
 import subprocess as sp
-from urllib.parse import urlparse
 
 from PyQt6.QtCore import pyqtSignal, pyqtSlot, Qt, QObject, QProcess
 from PyQt6.QtGui import QGuiApplication
@@ -41,9 +40,6 @@ class YoutubeVideo(QObject):
     
     def __init__(self, url):
         super().__init__()
-        netloc = urlparse(url).netloc
-        if all([item not in netloc for item in {"youtube.com", "youtu.be"}]):
-            raise NotYoutubeURL(url)
         self.url = url
         self.title = self.default_title
         self.channel = self.default_channel
@@ -98,13 +94,23 @@ class YoutubeVideo(QObject):
         raise TimeoutExpired(p)
     
     def download(self, filename, start, end):
-        video, audio = self.download_urls()
+        time = ["-ss", f"{start}"]
+        if end != self.duration:       # fix video trimming at the end
+            time += ["-to", f"{end}"]
+        urls = self.download_urls()
+        if len(urls) == 2:
+            video, audio = urls
+            source = time + ["-i", f"{video}"] + \
+                     time + ["-i", f"{audio}"]
+        elif len(urls) == 1:
+            video, = urls
+            source = time + ["-i", f"{video}"]
+        else:
+            raise RuntimeError("download URLs: " + str(urls))
         self.p = QProcess()
         self.p.readyReadStandardError.connect(self.parse_progress)
         self.p.finished.connect(self.finish_download)
-        self.p.start(f"{args.ffmpeg}", ["-ss", f"{start}", "-to", f"{end}", "-i", f"{video}",
-                                        "-ss", f"{start}", "-to", f"{end}", "-i", f"{audio}",
-                                        "-c", "copy", "-y", f"{filename}"])
+        self.p.start(f"{args.ffmpeg}", source + ["-c", "copy", "-y", f"{filename}"])
     
     @pyqtSlot()
     def parse_progress(self):
