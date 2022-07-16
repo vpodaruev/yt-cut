@@ -117,6 +117,7 @@ class MainWindow(QMainWindow):
         self.timeSpan.setEnabled(False)
         self.saveAs.reset()
         self.saveAs.setEnabled(False)
+        self.progressBar.setValue(0)
     
     @pyqtSlot(str, str)
     def got_interval(self, start, finish):
@@ -128,6 +129,7 @@ class MainWindow(QMainWindow):
     def edit_interval(self):
         self.saveAs.reset()
         self.saveAs.setEnabled(False)
+        self.progressBar.setValue(0)
     
     @pyqtSlot()
     def download(self):
