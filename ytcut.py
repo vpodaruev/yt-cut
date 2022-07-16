@@ -121,7 +121,11 @@ class MainWindow(QMainWindow):
     
     @pyqtSlot(str, str)
     def got_interval(self, start, finish):
-        file = sanitize_filename(self.ytVideo.title) + as_suffix(start, finish) +".mp4"
+        name = sanitize_filename(self.ytVideo.title)
+        max_name_len = 128
+        if len(name) > max_name_len:
+            name = name[ : max_name_len]
+        file = name + as_suffix(start, finish) +".mp4"
         self.saveAs.set_filename(file)
         self.saveAs.setEnabled(True)
     
