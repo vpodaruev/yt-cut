@@ -27,8 +27,8 @@ class AboutLabel(QLabel):
 class AboutButton(QToolButton):
     _about_text = """<p><b><big>YtCut</big></b> - version 1.0-rc
 
-<p>This application is just a wrapper around the console tools <b>youtube-dl</b> and <b>ffmpeg</b>.
-<p>Это приложение - всего лишь обёртка вокруг консольных утилит <b>youtube-dl</b> и <b>ffmpeg</b>.
+<p>This application is just a GUI wrapper for a small part of the features of the console tools <b>yt-dlp</b> and <b>ffmpeg</b>.
+<p>Это приложение - всего лишь графическая обёртка для небольшой части возможностей консольных утилит <b>yt-dlp</b> и <b>ffmpeg</b>.
 
 <p>Inspired by the <a href="https://creativesociety.com">Creative Society</a> international project
 """
