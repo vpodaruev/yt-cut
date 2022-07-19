@@ -37,6 +37,17 @@ class YoutubeVideo(QObject):
     error_occured = pyqtSignal(str)
     default_title = "Title / Название"
     default_channel = "Channel / Канал"
+    video_codecs = {
+        "copy": "Copy from source",
+        "h264": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10 (Intel Quick Sync Video acceleration)",
+        "mpeg4": "MPEG-4 part 2"
+    }
+    audio_codecs = {
+        "copy": "Copy from source",
+        "aac": "AAC (Advanced Audio Coding)",
+        "mp3": "libmp3lame MP3 (MPEG audio layer 3)",
+        
+    }
     
     def __init__(self, url):
         super().__init__()
@@ -46,6 +57,11 @@ class YoutubeVideo(QObject):
         self.duration = "0"
         self.p = None
         self.time_re = re.compile(r"time=((\d\d[:]){2}\d\d[.]\d\d)")
+        self.codecs = {
+            "video": "copy",
+            "audio": "copy"
+        }
+        self.debug = False
     
     def _check_result(self):
         err = decode(self.p.readAllStandardError())
@@ -107,10 +123,12 @@ class YoutubeVideo(QObject):
             source = time + ["-i", f"{video}"]
         else:
             raise RuntimeError("download URLs: " + str(urls))
+        codec = ["-c:v", self.codecs["video"], "-c:a", self.codecs["audio"]]
+        debug = ["-report"] if self.debug else []
         self.p = QProcess()
         self.p.readyReadStandardError.connect(self.parse_progress)
         self.p.finished.connect(self.finish_download)
-        self.p.start(f"{args.ffmpeg}", source + ["-c", "copy", "-y", f"{filename}"])
+        self.p.start(f"{args.ffmpeg}", source + codec + debug + ["-y", f"{filename}"])
     
     @pyqtSlot()
     def parse_progress(self):

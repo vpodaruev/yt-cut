@@ -15,6 +15,7 @@ from utils import *
 from ytlink import *
 from timespan import *
 from saveas import *
+from options import *
 import ytvideo
 
 
@@ -70,6 +71,9 @@ class MainWindow(QMainWindow):
         self.saveAs = SaveAsFile()
         self.saveAs.setEnabled(False)
         
+        self.options = Options()
+        self.options.setEnabled(False)
+        
         self.downloadButton = DownloadButton()
         self.downloadButton.clicked.connect(self.download)
         self.downloadButton.setEnabled(False)
@@ -84,12 +88,13 @@ class MainWindow(QMainWindow):
         mainLayout.addWidget(self.ytLink)
         mainLayout.addWidget(self.timeSpan)
         mainLayout.addWidget(self.saveAs)
+        mainLayout.addWidget(self.options)
         mainLayout.addWidget(self.downloadButton)
         mainLayout.addWidget(self.progressBar)
         mainLayout.addWidget(AboutLabel(),
                              alignment=Qt.AlignmentFlag.AlignRight)
         layout = QHBoxLayout()
-        layout.addWidget(AboutButton(240))
+        layout.addWidget(AboutButton(300))
         layout.addLayout(mainLayout)
         widget = QWidget()
         widget.setLayout(layout)
@@ -97,7 +102,7 @@ class MainWindow(QMainWindow):
 #         change window icon to Serpinsky carpet in a circle
         
         self.setCentralWidget(widget)
-        self.setMinimumWidth(640)
+        self.setMinimumWidth(700)
         self.setFixedHeight(self.sizeHint().height())
         self.setWindowTitle("YtCut - Share the positive / Делись позитивом")
         self.setWindowIcon(QIcon("cs-logo.jpg"))
@@ -117,6 +122,8 @@ class MainWindow(QMainWindow):
         self.timeSpan.setEnabled(False)
         self.saveAs.reset()
         self.saveAs.setEnabled(False)
+        self.options.setEnabled(False)
+        self.options.detach()
         self.progressBar.setValue(0)
     
     @pyqtSlot(str, str)
@@ -128,11 +135,14 @@ class MainWindow(QMainWindow):
         file = name + as_suffix(start, finish) +".mp4"
         self.saveAs.set_filename(file)
         self.saveAs.setEnabled(True)
+        self.options.setEnabled(True)
+        self.options.attach(self.ytVideo)
     
     @pyqtSlot()
     def edit_interval(self):
         self.saveAs.reset()
         self.saveAs.setEnabled(False)
+        self.options.setEnabled(False)
         self.progressBar.setValue(0)
     
     @pyqtSlot()
@@ -151,6 +161,7 @@ class MainWindow(QMainWindow):
             self.ytLink.setEnabled(False)
             self.timeSpan.setEnabled(False)
             self.saveAs.setEnabled(False)
+            self.options.setEnabled(False)
             self.downloadButton.toggle()
             self.duration_in_sec = to_seconds(f) - to_seconds(s)
             self.progressBar.reset()
@@ -175,6 +186,7 @@ class MainWindow(QMainWindow):
         self.ytLink.setEnabled(True)
         self.timeSpan.setEnabled(True)
         self.saveAs.setEnabled(True)
+        self.options.setEnabled(True)
 
 
 if __name__ == "__main__":
