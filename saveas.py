@@ -18,7 +18,7 @@ class SaveAsFile(QWidget):
         self.saveAsLineEdit = saveAsLineEdit
         
         saveAsPushButton = QPushButton()
-        saveAsPushButton.setIcon(QIcon("saveAs.png"))
+        saveAsPushButton.setIcon(QIcon("icons/saveAs.png"))
         saveAsPushButton.clicked.connect(self.browse)
         self.saveAsPushButton = saveAsPushButton
         

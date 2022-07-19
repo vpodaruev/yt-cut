@@ -28,8 +28,8 @@ class ToggleSwitch(QPushButton):
 
 class GoButton(ToggleSwitch):    
     def __init__(self):
-        views = [(QIcon("go-prev.png"), "", "Edit / Редактировать"),
-                 (QIcon("go-next.png"), "", "Go! / Поехали дальше!")]
+        views = [(QIcon("icons/go-prev.png"), "", "Edit / Редактировать"),
+                 (QIcon("icons/go-next.png"), "", "Go! / Поехали дальше!")]
         super().__init__(views)
 
 
