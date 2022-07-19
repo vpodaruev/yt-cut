@@ -19,6 +19,9 @@ from options import *
 import ytvideo
 
 
+__version__ = "1.0-rc1"
+
+
 class AboutLabel(QLabel):
     def __init__(self):
         super().__init__("<font color=\"Grey\"><i>Created with<font color=\"Red\">&#10084;</font> by AllatRa IT team</i></font>")
@@ -26,7 +29,7 @@ class AboutLabel(QLabel):
 
 
 class AboutButton(QToolButton):
-    _about_text = """<p><b><big>YtCut</big></b> - version 1.0-rc
+    _about_text = f"""<p><b><big>YtCut</big></b> - version {__version__}
 
 <p>This application is just a GUI wrapper for a small part of the features of the console tools <b>yt-dlp</b> and <b>ffmpeg</b>.
 <p>Это приложение - всего лишь графическая обёртка для небольшой части возможностей консольных утилит <b>yt-dlp</b> и <b>ffmpeg</b>.
