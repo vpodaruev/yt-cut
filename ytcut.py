@@ -194,9 +194,9 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Download parts of videos from Youtube")
-    parser.add_argument("--youtube-dl", type=Path, default=Path("yt-dlp"),
+    parser.add_argument("--youtube-dl", type=Path, default=Path("tools/yt-dlp"),
                         help="path to youtube-dl program [default: %(default)s]")
-    parser.add_argument("--ffmpeg", type=Path, default=Path("ffmpeg"),
+    parser.add_argument("--ffmpeg", type=Path, default=Path("tools/ffmpeg"),
                         help="path to ffmpeg program [default: %(default)s]")
 
     app = QApplication(sys.argv)
