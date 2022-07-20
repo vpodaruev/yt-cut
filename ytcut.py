@@ -108,7 +108,7 @@ class MainWindow(QMainWindow):
         self.setMinimumWidth(700)
         self.setFixedHeight(self.sizeHint().height())
         self.setWindowTitle("YtCut - Share the positive / Делись позитивом")
-        self.setWindowIcon(QIcon("icons/cs-logo.png"))
+        self.setWindowIcon(QIcon("icons/ytcut.png"))
     
     @pyqtSlot(YoutubeVideo)
     def got_yt_link(self, video):
