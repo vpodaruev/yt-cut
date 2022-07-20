@@ -39,7 +39,7 @@ class AboutButton(QToolButton):
     def __init__(self, size):
         super().__init__()
         size = QSize(size, size)
-        self.setIcon(QIcon("icons/cs-logo.jpg"))
+        self.setIcon(QIcon("icons/cs-logo.png"))
         self.setFixedSize(size)
         self.setIconSize(0.95*size)
         self.setAutoRaise(True)
@@ -108,7 +108,7 @@ class MainWindow(QMainWindow):
         self.setMinimumWidth(700)
         self.setFixedHeight(self.sizeHint().height())
         self.setWindowTitle("YtCut - Share the positive / Делись позитивом")
-        self.setWindowIcon(QIcon("icons/cs-logo.jpg"))
+        self.setWindowIcon(QIcon("icons/cs-logo.png"))
     
     @pyqtSlot(YoutubeVideo)
     def got_yt_link(self, video):
