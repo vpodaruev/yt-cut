@@ -6,12 +6,7 @@ rem Python script to executable
 pyinstaller --distpath %DIST% --onefile --windowed ytcut.py
 
 rem copy icons
-copy /b cs-logo.jpg %DIST%
-copy /b go-next.png %DIST%
-copy /b go-prev.png %DIST%
-copy /b saveAs.png %DIST%
-copy /b download.png %DIST%
-copy /b cancel.png %DIST%
+robocopy /E icons %DIST%/icons
 
 rem copy tools
 copy /b yt-dlp.exe %DIST%
