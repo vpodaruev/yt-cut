@@ -84,10 +84,9 @@ class YoutubeVideo(QObject):
         QGuiApplication.restoreOverrideCursor()
         try:
             js = json.loads(self._check_result())
+            self.channel = js["channel"] if "channel" in js else ""
             if "title" in js:
                 self.title = js["title"]
-            if "channel" in js:
-                self.channel = js["channel"]
             if "duration" in js:
                 self.duration = to_hhmmss(js["duration"])
             self.info_loaded.emit()
