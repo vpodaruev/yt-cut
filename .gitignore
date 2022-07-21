@@ -1,4 +1,4 @@
-yt-cut/
+dist/
 build/
 .ipynb*/
 __pycache__/
