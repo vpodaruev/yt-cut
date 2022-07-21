@@ -102,8 +102,6 @@ class MainWindow(QMainWindow):
         widget = QWidget()
         widget.setLayout(layout)
         
-#         change window icon to Serpinsky carpet in a circle
-        
         self.setCentralWidget(widget)
         self.setMinimumWidth(700)
         self.setFixedHeight(self.sizeHint().height())
@@ -202,6 +200,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     args = parser.parse_args()
     
+    # access to other modules
     ytvideo.args = args
 
     window = MainWindow()
