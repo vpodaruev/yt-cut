@@ -16,10 +16,8 @@ from ytlink import *
 from timespan import *
 from saveas import *
 from options import *
+from version import *
 import ytvideo
-
-
-__version__ = "1.0-rc1"
 
 
 class AboutLabel(QLabel):
@@ -29,7 +27,7 @@ class AboutLabel(QLabel):
 
 
 class AboutButton(QToolButton):
-    _about_text = f"""<p><b><big>YtCut</big></b> - version {__version__}
+    _about_text = f"""<p><b><big>YtCut</big></b> - version {get_version()}
 
 <p>This application is just a GUI wrapper for a small part of the features of the console tools <b>yt-dlp</b> and <b>ffmpeg</b>.
 <p>Это приложение - всего лишь графическая обёртка для небольшой части возможностей консольных утилит <b>yt-dlp</b> и <b>ffmpeg</b>.
