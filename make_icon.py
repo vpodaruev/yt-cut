@@ -18,9 +18,12 @@ y = 0.95 * np.sin(t)
 triangle = Polygon(np.array([x, y]).T, color="k", fill=False, linewidth=12.0)
 ax.add_patch(triangle)
 
+circle = Circle((0, 0), radius=0.1, color="k")
+ax.add_patch(circle)
+
 ax.set(xlim=(-1.05, 1.05), xticks=[],
        ylim=(-1.05, 1.05), yticks=[])
 ax.set_frame_on(False)
 
-plt.savefig("icons/ytcut.ico", transparent=True)
+plt.savefig("icons/ytcut.png", transparent=True)
 plt.show()
