@@ -9,7 +9,8 @@ from PyQt6.QtGui import QGuiApplication
 from utils import *
 
 
-global args  # set in main module
+global args     # set in main module
+global options  # same thing
 
 class NotYoutubeURL(RuntimeError):
     def __init__(self, url):
@@ -37,6 +38,8 @@ class YoutubeVideo(QObject):
     error_occured = pyqtSignal(str)
     default_title = "Title / Название"
     default_channel = "Channel / Канал"
+    browsers = ["brave", "chrome", "chromium", "edge",
+                "firefox", "opera", "safari", "vivaldi"]
     video_codecs = {
         "copy": "Copy from source",
         "h264": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10 (Intel Quick Sync Video acceleration)",
@@ -57,10 +60,6 @@ class YoutubeVideo(QObject):
         self.duration = "0"
         self.p = None
         self.time_re = re.compile(r"time=((\d\d[:]){2}\d\d[.]\d\d)")
-        self.codecs = {
-            "video": "copy",
-            "audio": "copy"
-        }
         self.debug = False
     
     def _check_result(self):
@@ -73,10 +72,15 @@ class YoutubeVideo(QObject):
             return decode(self.p.readAllStandardOutput())
         raise CalledProcessFailed(self.p, err)
     
+    def _ytdl_cookies(self):
+        browser = options.get_browser() if options else None
+        return ["--cookies-from-browser", browser] if browser else []
+    
     def request_info(self):
         self.p = QProcess()
         self.p.finished.connect(self.process_info)
-        self.p.start(f"{args.youtube_dl}", ["--dump-json", f"{self.url}"])
+        opts = self._ytdl_cookies()
+        self.p.start(f"{args.youtube_dl}", opts + ["--dump-json", f"{self.url}"])
         QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
     
     @pyqtSlot()
@@ -98,7 +102,8 @@ class YoutubeVideo(QObject):
     def download_urls(self):
         QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self.p = QProcess()
-        self.p.start(f"{args.youtube_dl}", ["-g", f"{self.url}"])
+        opts = self._ytdl_cookies()
+        self.p.start(f"{args.youtube_dl}", opts + ["-g", f"{self.url}"])
         if self.p.waitForFinished():
             QGuiApplication.restoreOverrideCursor()
             if result := self._check_result():
@@ -108,26 +113,39 @@ class YoutubeVideo(QObject):
         QGuiApplication.restoreOverrideCursor()
         raise TimeoutExpired(p)
     
-    def download(self, filename, start, end):
+    def _ffmpeg_source(self, start, end):
         time = ["-ss", f"{start}"]
         if end != self.duration:       # fix video trimming at the end
             time += ["-to", f"{end}"]
         urls = self.download_urls()
         if len(urls) == 2:
             video, audio = urls
-            source = time + ["-i", f"{video}"] + \
-                     time + ["-i", f"{audio}"]
+            return time + ["-i", f"{video}"] + \
+                   time + ["-i", f"{audio}"]
         elif len(urls) == 1:
             video, = urls
-            source = time + ["-i", f"{video}"]
-        else:
-            raise RuntimeError("download URLs: " + str(urls))
-        codec = ["-c:v", self.codecs["video"], "-c:a", self.codecs["audio"]]
-        debug = ["-report"] if self.debug else []
+            return time + ["-i", f"{video}"]
+        raise RuntimeError("download URLs: " + str(urls))
+    
+    def _ffmpeg_codecs(self):
+        codecs = options.get_codecs() if options else None
+        return ["-c:v", codecs["video"], "-c:a", codecs["audio"]] if codecs else []
+    
+    def _ffmpeg_debug(self):
+        opts = []
+        if options and options.need_debug():
+            opts += ["-report"] if options.get_logging() else []
+        return opts
+    
+    def download(self, filename, start, end):
+        opts = []
+        opts += self._ffmpeg_source(start, end)
+        opts += self._ffmpeg_codecs()
+        opts += self._ffmpeg_debug()
         self.p = QProcess()
         self.p.readyReadStandardError.connect(self.parse_progress)
         self.p.finished.connect(self.finish_download)
-        self.p.start(f"{args.ffmpeg}", source + codec + debug + ["-y", f"{filename}"])
+        self.p.start(f"{args.ffmpeg}", opts + ["-y", f"{filename}"])
     
     @pyqtSlot()
     def parse_progress(self):

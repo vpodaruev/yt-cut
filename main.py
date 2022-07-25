@@ -8,7 +8,7 @@ from pathvalidate import sanitize_filename
 from PyQt6.QtCore import pyqtSlot, Qt, QSize
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import (QWidget, QLabel, QToolButton, QVBoxLayout, QProgressBar,
-                             QSizePolicy, QMessageBox, QMainWindow, QApplication)
+                             QSizePolicy, QMessageBox, QTabWidget, QMainWindow, QApplication)
 import sys
 
 from utils import *
@@ -73,7 +73,7 @@ class MainWindow(QMainWindow):
         self.saveAs.setEnabled(False)
         
         self.options = Options()
-        self.options.setEnabled(False)
+        ytvideo.options = self.options  # access to other modules
         
         self.downloadButton = DownloadButton()
         self.downloadButton.clicked.connect(self.download)
@@ -85,18 +85,28 @@ class MainWindow(QMainWindow):
         self.progressBar.setValue(0)
         self.duration_in_sec = 1
         
-        mainLayout = QVBoxLayout()
-        mainLayout.addWidget(self.ytLink)
-        mainLayout.addWidget(self.timeSpan)
-        mainLayout.addWidget(self.saveAs)
-        mainLayout.addWidget(self.options)
-        mainLayout.addWidget(self.downloadButton)
-        mainLayout.addWidget(self.progressBar)
-        mainLayout.addWidget(AboutLabel(),
-                             alignment=Qt.AlignmentFlag.AlignRight)
-        layout = QHBoxLayout()
-        layout.addWidget(AboutButton(300))
+        mainTabLayout = QVBoxLayout()
+        mainTabLayout.addWidget(self.ytLink)
+        mainTabLayout.addWidget(self.timeSpan)
+        mainTabLayout.addWidget(self.saveAs)
+        mainTabLayout.addWidget(self.downloadButton)
+        mainTabLayout.addWidget(self.progressBar)
+        mainTab = QWidget()
+        mainTab.setLayout(mainTabLayout)
+        
+        tabs = QTabWidget()
+        tabs.addTab(mainTab, "Main")
+        tabs.addTab(self.options, "Options")
+        tabs.setTabPosition(QTabWidget.TabPosition.East)
+        
+        mainLayout = QHBoxLayout()
+        mainLayout.addWidget(AboutButton(240))
+        mainLayout.addWidget(tabs)
+        
+        layout = QVBoxLayout()
         layout.addLayout(mainLayout)
+        layout.addWidget(AboutLabel(),
+                         alignment=Qt.AlignmentFlag.AlignRight)
         widget = QWidget()
         widget.setLayout(layout)
         
@@ -121,8 +131,6 @@ class MainWindow(QMainWindow):
         self.timeSpan.setEnabled(False)
         self.saveAs.reset()
         self.saveAs.setEnabled(False)
-        self.options.setEnabled(False)
-        self.options.detach()
         self.progressBar.setValue(0)
     
     @pyqtSlot(str, str)
@@ -134,14 +142,11 @@ class MainWindow(QMainWindow):
         file = name + as_suffix(start, finish) +".mp4"
         self.saveAs.set_filename(file)
         self.saveAs.setEnabled(True)
-        self.options.setEnabled(True)
-        self.options.attach(self.ytVideo)
     
     @pyqtSlot()
     def edit_interval(self):
         self.saveAs.reset()
         self.saveAs.setEnabled(False)
-        self.options.setEnabled(False)
         self.progressBar.setValue(0)
     
     @pyqtSlot()
@@ -160,7 +165,6 @@ class MainWindow(QMainWindow):
             self.ytLink.setEnabled(False)
             self.timeSpan.setEnabled(False)
             self.saveAs.setEnabled(False)
-            self.options.setEnabled(False)
             self.downloadButton.toggle()
             self.duration_in_sec = to_seconds(f) - to_seconds(s)
             self.progressBar.reset()
@@ -185,7 +189,6 @@ class MainWindow(QMainWindow):
         self.ytLink.setEnabled(True)
         self.timeSpan.setEnabled(True)
         self.saveAs.setEnabled(True)
-        self.options.setEnabled(True)
 
 
 if __name__ == "__main__":
