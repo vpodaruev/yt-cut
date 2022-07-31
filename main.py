@@ -169,7 +169,7 @@ class MainWindow(QMainWindow):
             self.duration_in_sec = to_seconds(f) - to_seconds(s)
             self.progressBar.reset()
             try:
-                self.ytVideo.download(file, s, f)
+                self.ytVideo.start_download(file, s, f)
             except CalledProcessError as e:
                 QMessageBox.critical(self.parent(), "Error", f"{e}")
                 self.ytVideo.cancel_download()
@@ -181,10 +181,12 @@ class MainWindow(QMainWindow):
         percent = int(val / self.duration_in_sec * 100)
         self.progressBar.setValue(percent)
     
-    @pyqtSlot(bool)
-    def download_finished(self, ok):
+    @pyqtSlot(bool, str)
+    def download_finished(self, ok, errmsg):
         if ok:
             self.progressBar.setValue(self.progressBar.maximum())
+        elif errmsg:
+            QMessageBox.critical(self.parent(), "Error", errmsg)
         self.downloadButton.toggle()
         self.ytLink.setEnabled(True)
         self.timeSpan.setEnabled(True)

@@ -66,7 +66,7 @@ class YoutubeLink(QWidget):
         try:
             self.video = YoutubeVideo(url)
             self.video.info_loaded.connect(self.process_info)
-            self.video.error_occured.connect(self.process_error)
+            self.video.info_failed.connect(self.process_error)
             self.video.request_info()
             self.setEnabled(False)
         except NotYoutubeURL as e:

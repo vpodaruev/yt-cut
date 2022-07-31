@@ -34,8 +34,8 @@ class CalledProcessFailed(CalledProcessError):
 class YoutubeVideo(QObject):
     info_loaded = pyqtSignal()
     progress = pyqtSignal(float)
-    finished = pyqtSignal(bool)
-    error_occured = pyqtSignal(str)
+    finished = pyqtSignal(bool, str)
+    info_failed = pyqtSignal(str)
     default_title = "Title / Название"
     default_channel = "Channel / Канал"
     browsers = ["brave", "chrome", "chromium", "edge",
@@ -60,7 +60,9 @@ class YoutubeVideo(QObject):
         self.duration = "0"
         self.p = None
         self.time_re = re.compile(r"time=((\d\d[:]){2}\d\d[.]\d\d)")
+        self.err_re = re.compile(r"[Ee]rror")
         self.debug = False
+        self.error = ""
     
     def _check_result(self):
         err = decode(self.p.readAllStandardError())
@@ -95,7 +97,7 @@ class YoutubeVideo(QObject):
                 self.duration = to_hhmmss(js["duration"])
             self.info_loaded.emit()
         except CalledProcessFailed as e:
-            self.error_occured.emit(f"{e}")
+            self.info_failed.emit(f"{e}")
         finally:
             self.p = None
     
@@ -137,7 +139,7 @@ class YoutubeVideo(QObject):
             opts += ["-report"] if options.get_logging() else []
         return opts
     
-    def download(self, filename, start, end):
+    def start_download(self, filename, start, end):
         opts = []
         opts += self._ffmpeg_source(start, end)
         opts += self._ffmpeg_codecs()
@@ -145,7 +147,7 @@ class YoutubeVideo(QObject):
         self.p = QProcess()
         self.p.readyReadStandardError.connect(self.parse_progress)
         self.p.finished.connect(self.finish_download)
-        self.p.start(f"{args.ffmpeg}", opts + ["-y", f"{filename}"])
+        self.p.start(f"{args.ffmpeg}", opts + ["-xerror", "-y", f"{filename}"])
     
     @pyqtSlot()
     def parse_progress(self):
@@ -153,6 +155,8 @@ class YoutubeVideo(QObject):
         if m := re.search(self.time_re, result):
             time = m.group(1)
             self.progress.emit(from_ffmpeg_time(time))
+        elif m := re.search(self.err_re, result):
+            self.error = result
     
     def cancel_download(self):
         if self.p.state() == QProcess.ProcessState.NotRunning:
@@ -164,4 +168,5 @@ class YoutubeVideo(QObject):
     def finish_download(self, code, status):
         self.p = None
         ok = (status == QProcess.ExitStatus.NormalExit) and (code == 0)
-        self.finished.emit(ok)
+        err, self.error = self.error, ""
+        self.finished.emit(ok, err)
