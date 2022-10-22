@@ -14,10 +14,10 @@ class ToggleSwitch(QPushButton):
         super().__init__()
         self.views = views
         self.turn_on(True)
-    
+
     def toggle(self):
         self.turn_on(not self.on)
-    
+
     def turn_on(self, on):
         self.on = on
         icon, text, tip = self.views[int(on)]
@@ -26,7 +26,7 @@ class ToggleSwitch(QPushButton):
         self.setToolTip(tip)
 
 
-class GoButton(ToggleSwitch):    
+class GoButton(ToggleSwitch):
     def __init__(self):
         views = [(QIcon("icons/go-prev.png"), "", "Edit / Редактировать"),
                  (QIcon("icons/go-next.png"), "", "Go! / Поехали дальше!")]

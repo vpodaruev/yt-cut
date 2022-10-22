@@ -2,7 +2,7 @@
 
 __version__ = "1.0-rc1"
 
-#RELEASE_GIT_HEAD = '135f05ef6'
+# RELEASE_GIT_HEAD = '135f05ef6'
 
 
 def get_version():

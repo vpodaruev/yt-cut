@@ -40,7 +40,7 @@ def main():
     print(f'Running PyInstaller with {opts}')
     run_pyinstaller(opts)
     set_version_info(final_file, version)
-    
+
     from pathlib import Path
     dist = Path(final_file).parent
     print("Coping package files")
@@ -142,7 +142,8 @@ def copy_all_needs(dist):
 def make_archive(dist, version):
     arch = dist.with_name("yt-cut")
     os.rename(dist, arch)
-    target = shutil.make_archive(f"yt-cut_v{version}", "zip", root_dir=arch.parent, base_dir=arch, verbose=True)
+    shutil.make_archive(f"yt-cut_v{version}", "zip",
+                        root_dir=arch.parent, base_dir=arch, verbose=True)
     os.rename(arch, dist)    # restore the dist name
 
 

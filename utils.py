@@ -7,7 +7,8 @@ def to_hhmmss(seconds, delim=":"):
     seconds = int(seconds)
     minutes = seconds // 60
     hours = minutes // 60
-    return f"{hours:02d}{delim}{minutes - 60*hours:02d}{delim}{seconds - 60*minutes:02d}"
+    return f"{hours:02d}{delim}{minutes - 60*hours:02d}" \
+           f"{delim}{seconds - 60*minutes:02d}"
 
 
 def to_seconds(hhmmss):

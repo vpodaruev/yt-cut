@@ -7,7 +7,7 @@ import numpy as np
 plt.style.use('_mpl-gallery')
 
 # plot
-fig, ax = plt.subplots(figsize=(5,5))
+fig, ax = plt.subplots(figsize=(5, 5))
 
 circle = Circle((0, 0), radius=1.0, color="k", fill=False, linewidth=12.0)
 ax.add_patch(circle)
