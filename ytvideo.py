@@ -113,6 +113,7 @@ class YoutubeVideo(QObject):
         QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self.p = QProcess()
         opts = self._ytdl_cookies()
+        opts += ["-S", "vcodec:h264,acodec:mp3,quality"]
         self.p.start(f"{args.youtube_dl}", opts + ["-g", f"{self.url}"])
         if self.p.waitForFinished():
             QGuiApplication.restoreOverrideCursor()
