@@ -133,6 +133,8 @@ class MainWindow(QMainWindow):
         self.ytVideo.finished.connect(self.download_finished)
         self.ytVideo.progress.connect(self.update_progress)
         self.timeSpan.set_duration(video.duration, ut.get_url_time(video.url))
+        self.timeSpan.set_quality(["1080p", "720p", "480p",
+                                   "360p", "240p", "144p"])
         self.timeSpan.setEnabled(True)
 
     @pyqtSlot()
