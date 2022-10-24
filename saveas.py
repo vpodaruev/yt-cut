@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from pathlib import Path
+
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import (
@@ -20,6 +22,8 @@ class SaveAsFile(QWidget):
         saveAsLineEdit.textChanged.connect(self.filename_changed)
         self.saveAsLineEdit = saveAsLineEdit
 
+        self.directory = Path.cwd()
+
         saveAsPushButton = QPushButton()
         saveAsPushButton.setIcon(QIcon("icons/saveAs.png"))
         saveAsPushButton.clicked.connect(self.browse)
@@ -36,11 +40,16 @@ class SaveAsFile(QWidget):
         self.changed.emit(bool(file))
 
     def reset(self):
+        tmp = Path(self.get_filename()).parent
+        if tmp.is_dir():
+            self.directory = tmp
         self.saveAsLineEdit.clear()
 
     def set_filename(self, file):
         if not file:
             return
+        if Path(file).parent == Path("."):
+            file = (self.directory / file).as_posix()
         self.saveAsLineEdit.setText(file)
 
     def get_filename(self):
