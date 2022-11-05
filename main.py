@@ -123,7 +123,8 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
         self.setMinimumWidth(700)
         self.setFixedHeight(self.sizeHint().height())
-        self.setWindowTitle("YtCut - Share the positive / Делись позитивом")
+        self.setWindowTitle(f"YtCut {vrs.get_version()}"
+                            " Share the positive / Делись позитивом")
         self.setWindowIcon(QIcon("icons/ytcut.png"))
 
     @pyqtSlot(ytv.YoutubeVideo)
