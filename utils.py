@@ -12,7 +12,7 @@ def to_hhmmss(seconds, delim=":"):
 
 
 def to_seconds(hhmmss):
-    tt = [int(x) if x else 0 for x in re.split(r"[:,.']", hhmmss)]
+    tt = [int(x) if x else 0 for x in re.split(r"[:,.' ]", hhmmss)]
     s = 0
     for x, n in zip(reversed(tt), range(len(tt))):
         s += x * 60**n
