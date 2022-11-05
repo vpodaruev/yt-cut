@@ -16,7 +16,7 @@ class TimeSpan(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        timingPattern = QRegularExpression(r"\d+([:,.'][0-5]\d){0,2}")
+        timingPattern = QRegularExpression(r"\d+([:,.' ][0-5]\d){0,2}")
         timingValidator = QRegularExpressionValidator(timingPattern)
 
         fromLabel = QLabel("Cut from:")
