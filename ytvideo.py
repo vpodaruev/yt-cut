@@ -9,8 +9,8 @@ from PyQt6.QtGui import QGuiApplication
 import utils as ut
 
 
-global args     # set in main module
-global options  # same thing
+args = None     # set in main module
+options = None  # same thing
 
 
 class NotYoutubeURL(RuntimeError):
@@ -82,7 +82,7 @@ class YoutubeVideo(QObject):
         raise CalledProcessFailed(self.p, err)
 
     def _ytdl_cookies(self):
-        browser = options.get_browser() if options else None
+        browser = options.browser if options else None
         return ["--cookies-from-browser", browser] if browser else []
 
     def request_info(self):
@@ -109,10 +109,16 @@ class YoutubeVideo(QObject):
         finally:
             self.p = None
 
+    def _use_premiere(self):
+        if options and options.use_premiere:
+            return ["-S", "vcodec:h264,acodec:mp3,quality"]
+        return []
+
     def download_urls(self):
         QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self.p = QProcess()
         opts = self._ytdl_cookies()
+        opts += self._use_premiere()
         self.p.start(f"{args.youtube_dl}", opts + ["-g", f"{self.url}"])
         if self.p.waitForFinished():
             QGuiApplication.restoreOverrideCursor()
@@ -138,13 +144,14 @@ class YoutubeVideo(QObject):
         raise RuntimeError("download URLs: " + str(urls))
 
     def _ffmpeg_codecs(self):
-        codecs = options.get_codecs() if options else None
-        return ["-c:v", codecs["video"], "-c:a", codecs["audio"]] if codecs else []
+        codecs = options.codecs if options else None
+        return ["-c:v", codecs["video"],
+                "-c:a", codecs["audio"]] if codecs else []
 
     def _ffmpeg_debug(self):
         opts = []
-        if options and options.need_debug():
-            opts += ["-report"] if options.get_logging() else []
+        if options:
+            opts += ["-report"] if options.debug["logging"] else []
         return opts
 
     def start_download(self, filename, start, end):
