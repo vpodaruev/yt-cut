@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import re
+from urllib.parse import urlparse, parse_qs
 
 
 def to_hhmmss(seconds, delim=":"):
@@ -31,3 +32,11 @@ def as_suffix(start, finish):
 
 def decode(msg):
     return bytes(msg).decode("utf8", "replace")
+
+
+def get_url_time(url):
+    if qs := urlparse(url).query:
+        query = parse_qs(qs)
+        if "t" in query:
+            return query["t"][0]
+    return None

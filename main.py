@@ -132,7 +132,7 @@ class MainWindow(QMainWindow):
         self.ytVideo = video
         self.ytVideo.finished.connect(self.download_finished)
         self.ytVideo.progress.connect(self.update_progress)
-        self.timeSpan.set_duration(video.duration)
+        self.timeSpan.set_duration(video.duration, ut.get_url_time(video.url))
         self.timeSpan.setEnabled(True)
 
     @pyqtSlot()
