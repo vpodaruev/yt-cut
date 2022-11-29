@@ -56,10 +56,12 @@ class TimeSpan(QWidget):
         if not self.goButton.on:
             self.goButton.toggle()
 
-    def set_duration(self, duration):
+    def set_duration(self, duration, url_time=None):
         self.duration = duration
         self.toLineEdit.setPlaceholderText(duration)
         self.toLineEdit.setToolTip(f"max {duration}")
+        if url_time:
+            self.fromLineEdit.setText(ut.to_hhmmss(url_time))
         self.goButton.setEnabled(True)
 
     def get_interval(self):
