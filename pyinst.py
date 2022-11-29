@@ -2,8 +2,9 @@
 
 ## This code is based on yt-dlp source code
 
-import os, shutil
+import os
 import platform
+import shutil
 import sys
 
 from PyInstaller.__main__ import run as run_pyinstaller
