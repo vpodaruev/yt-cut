@@ -90,7 +90,10 @@ class YoutubeVideo(QObject):
         self.p.finished.connect(self.process_info)
         opts = self._ytdl_cookies()
         self.p.start(f"{args.youtube_dl}",
-                     opts + ["--dump-json", f"{self.url}"])
+                     opts + ["--print", '{ "channel": %(channel)j'
+                                        ', "title": %(title)j'
+                                        ', "duration": %(duration)j }',
+                             f"{self.url}"])
         QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
 
     @pyqtSlot()
