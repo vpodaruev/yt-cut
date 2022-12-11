@@ -2,6 +2,7 @@
 
 import json
 import re
+import sys
 
 from PyQt6.QtCore import pyqtSignal, pyqtSlot, Qt, QObject, QProcess
 from PyQt6.QtGui import QGuiApplication
@@ -73,11 +74,13 @@ class YoutubeVideo(QObject):
 
     def _check_result(self):
         err = ut.decode(self.p.readAllStandardError())
-        if err:
+        if ut.has_error(err):
             pass
         elif self.p.exitStatus() != QProcess.ExitStatus.NormalExit:
-            err = f"Exit with error code {self.p.error()}."
+            err = f"Exit with error code {self.p.error()}. " + err
         else:
+            if err:                          # for debug purposes
+                print(err, file=sys.stderr)
             return ut.decode(self.p.readAllStandardOutput())
         raise CalledProcessFailed(self.p, err)
 
