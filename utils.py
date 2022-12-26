@@ -34,11 +34,15 @@ def decode(msg):
     return bytes(msg).decode("utf8", "replace")
 
 
+time_pat = re.compile(r"^([\d]+)[s]*$")
+
+
 def get_url_time(url):
     if qs := urlparse(url).query:
         query = parse_qs(qs)
-        if "t" in query:
-            return query["t"][0]
+        value = query["t"][0] if "t" in query else ""
+        if m := time_pat.match(value):
+            return m.group(1)
     return None
 
 
