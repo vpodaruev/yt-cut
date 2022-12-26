@@ -34,9 +34,39 @@ def decode(msg):
     return bytes(msg).decode("utf8", "replace")
 
 
+time_pat = re.compile(r"^([\d]+)[s]*$")
+
+
 def get_url_time(url):
     if qs := urlparse(url).query:
         query = parse_qs(qs)
-        if "t" in query:
-            return query["t"][0]
+        value = query["t"][0] if "t" in query else ""
+        if m := time_pat.match(value):
+            return m.group(1)
     return None
+
+
+err_pat = re.compile(r"error", re.IGNORECASE)
+
+
+def has_error(msg):
+    return err_pat.search(msg) is not None
+
+
+if __name__ == "__main__":
+    def ok(v):
+        return "[OK]" if v else "[FAILED]"
+
+    tests = [
+        ("error", True),
+        ("Error", True),
+        ("ERROR", True),
+        ("Error:", True),
+        ("SomeError:", True),
+        ("ERROR:", True),
+        ("Err", False),
+        ("SomeWarning:", True),
+        ("WARNING", False),
+    ]
+    print("Test has_error(): ",
+          ok(any([has_error(msg) == ans for msg, ans in tests])))
