@@ -132,9 +132,8 @@ class MainWindow(QMainWindow):
         self.ytVideo = video
         self.ytVideo.finished.connect(self.download_finished)
         self.ytVideo.progress.connect(self.update_progress)
+        self.timeSpan.set_format(video.get_formats())
         self.timeSpan.set_duration(video.duration, ut.get_url_time(video.url))
-        self.timeSpan.set_quality(["1080p", "720p", "480p",
-                                   "360p", "240p", "144p"])
         self.timeSpan.setEnabled(True)
 
     @pyqtSlot()
@@ -184,7 +183,8 @@ class MainWindow(QMainWindow):
             self.duration_in_sec = ut.to_seconds(f) - ut.to_seconds(s)
             self.progressBar.reset()
             try:
-                self.ytVideo.start_download(file, s, f)
+                format = self.timeSpan.get_format()
+                self.ytVideo.start_download(file, s, f, format)
             except ytv.CalledProcessError as e:
                 QMessageBox.critical(self.parent(), "Error", f"{e}")
                 self.ytVideo.cancel_download()

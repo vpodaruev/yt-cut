@@ -3,7 +3,7 @@
 from PyQt6.QtCore import pyqtSignal, pyqtSlot, QRegularExpression
 from PyQt6.QtGui import QRegularExpressionValidator
 from PyQt6.QtWidgets import (QWidget, QLabel, QLineEdit,
-                             QComboBox, QMessageBox, QHBoxLayout)
+                             QComboBox, QMessageBox, QHBoxLayout, QVBoxLayout)
 
 import gui
 import utils as ut
@@ -29,24 +29,26 @@ class TimeSpan(QWidget):
         toLineEdit.setValidator(timingValidator)
         self.toLineEdit = toLineEdit
 
-        qualityComboBox = QComboBox()
-        qualityComboBox.setEditable(False)
-        self.qualityComboBox = qualityComboBox
+        formatComboBox = QComboBox()
+        formatComboBox.setEditable(False)
+        self.formatComboBox = formatComboBox
 
         goButton = gui.GoButton()
         goButton.clicked.connect(self.interval_edited)
         self.goButton = goButton
 
-        layout = QHBoxLayout()
-        layout.addWidget(fromLabel)
-        layout.addWidget(fromLineEdit)
-        layout.addSpacing(5)
-        layout.addWidget(toLabel)
-        layout.addWidget(toLineEdit)
-        layout.addSpacing(5)
-        layout.addWidget(qualityComboBox)
-        layout.addSpacing(5)
-        layout.addWidget(goButton)
+        hLayout = QHBoxLayout()
+        hLayout.addWidget(fromLabel)
+        hLayout.addWidget(fromLineEdit)
+        hLayout.addSpacing(5)
+        hLayout.addWidget(toLabel)
+        hLayout.addWidget(toLineEdit)
+        hLayout.addSpacing(5)
+        hLayout.addWidget(goButton)
+
+        layout = QVBoxLayout()
+        layout.addWidget(formatComboBox)
+        layout.addLayout(hLayout)
         self.setLayout(layout)
         self.reset()
         self.setEnabled(False)
@@ -60,7 +62,7 @@ class TimeSpan(QWidget):
         self.toLineEdit.setPlaceholderText(zero)
         self.toLineEdit.setToolTip(f"max {zero}")
         self.toLineEdit.setEnabled(True)
-        self.clear_quality()
+        self.clear_format()
         if not self.goButton.on:
             self.goButton.toggle()
 
@@ -72,16 +74,16 @@ class TimeSpan(QWidget):
             self.fromLineEdit.setText(ut.to_hhmmss(url_time))
         self.goButton.setEnabled(True)
 
-    def get_quality(self, quality):
-        return self.qualityComboBox.currentText()
+    def get_format(self):
+        return self.formatComboBox.currentText()
 
-    def set_quality(self, quality):
-        self.qualityComboBox.clear()
-        for q in quality:
-            self.qualityComboBox.addItem(q)
+    def set_format(self, formats):
+        self.formatComboBox.clear()
+        for f in formats:
+            self.formatComboBox.addItem(f)
 
-    def clear_quality(self):
-        self.set_quality(["best"])
+    def clear_format(self):
+        self.set_format(["best available format / наилучший доступный формат"])
 
     def get_interval(self):
         return (gui.getLineEditValue(self.fromLineEdit),
@@ -121,10 +123,12 @@ class TimeSpan(QWidget):
             return
 
         if self.goButton.on:
+            self.formatComboBox.setEnabled(False)
             self.fromLineEdit.setEnabled(False)
             self.toLineEdit.setEnabled(False)
             self.got_interval.emit(*self.get_interval())
         else:
+            self.formatComboBox.setEnabled(True)
             self.fromLineEdit.setEnabled(True)
             self.toLineEdit.setEnabled(True)
             self.edit_interval.emit()

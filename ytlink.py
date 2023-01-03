@@ -95,4 +95,8 @@ class YoutubeLink(QWidget):
         self.goButton.toggle()
         v, self.video = self.video, None
         self.reset_title(channel=v.channel, title=v.title)
-        self.got_link.emit(v)
+        try:
+            v.request_formats()
+            self.got_link.emit(v)
+        except ytv.CalledProcessError as e:
+            self.process_error(f"{e}")
