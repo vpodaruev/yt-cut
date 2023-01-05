@@ -63,6 +63,7 @@ class TimeSpan(QWidget):
         self.toLineEdit.setToolTip(f"max {zero}")
         self.toLineEdit.setEnabled(True)
         self.clear_format()
+        self.formatComboBox.setEnabled(True)
         if not self.goButton.on:
             self.goButton.toggle()
 

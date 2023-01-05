@@ -121,24 +121,26 @@ class YoutubeVideo(QObject):
             return ["-S", "vcodec:h264,acodec:mp3,quality"]
         return []
 
-    def request_formats(self, filter="all[vcodec!=none]+ba/b"):
+    def request_formats(self, filter="all[vcodec!=none]+ba"
+                                     "/all[vcodec!=none][acodec!=none]/b*"):
         QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self.p = QProcess()
         opts = self._ytdl_cookies()
         opts += self._use_premiere()
         opts += ["-f", filter] if filter else []
         self.p.start(f"{args.youtube_dl}",
-                     opts + ["--print", '{ "format_id": %(format_id)j'
-                                        ', "ext": %(ext)j'
-                                        ', "resolution": %(resolution)j'
-                                        ', "width": %(width)j'
-                                        ', "height": %(height)j'
-                                        ', "tbr": %(tbr)j'
-                                        ', "vcodec": %(vcodec)j'
-                                        ', "acodec": %(acodec)j'
-                                        ', "size": %(filesize,filesize_approx)j'
-                                        ', "format_note": %(format_note)j'
-                                        ', "urls": %(urls)j }, ',
+                     opts + ["--print",
+                             '{ "format_id": %(format_id)j'
+                             ', "ext": %(ext)j'
+                             ', "resolution": %(resolution)j'
+                             ', "width": %(width)j'
+                             ', "height": %(height)j'
+                             ', "tbr": %(tbr)j'
+                             ', "vcodec": %(vcodec)j'
+                             ', "acodec": %(acodec)j'
+                             ', "size": %(filesize,filesize_approx)j'
+                             ', "format_note": %(format_note)j'
+                             ', "urls": %(urls)j }, ',
                              f"{self.url}"])
         if self.p.waitForFinished():
             QGuiApplication.restoreOverrideCursor()
