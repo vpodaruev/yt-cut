@@ -95,6 +95,7 @@ class YoutubeVideo(QObject):
         opts = self._ytdl_cookies()
         self.p.start(f"{args.youtube_dl}",
                      opts + ["--print", '{ "channel": %(channel)j'
+                                        ', "uploader": %(uploader)j'
                                         ', "title": %(title)j'
                                         ', "duration": %(duration)j }',
                              f"{self.url}"])
@@ -105,7 +106,8 @@ class YoutubeVideo(QObject):
         QGuiApplication.restoreOverrideCursor()
         try:
             js = json.loads(self._check_result())
-            self.channel = js["channel"]
+            self.channel = js["channel"] if js["channel"] != "NA" \
+                else js["uploader"]
             self.title = js["title"]
             self.duration = ut.to_hhmmss(js["duration"])
             self.info_loaded.emit()
