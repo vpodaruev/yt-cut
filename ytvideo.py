@@ -159,14 +159,18 @@ class YoutubeVideo(QObject):
     def get_formats(self):
         return list(self.formats.keys())
 
-    def download_urls(self, format):
-        return self.formats[format]["urls"].split()
+    def get_suffix(self, start, finish, format):
+        res = ut.format_resolution(self.formats[format])
+        return f"_{res}" + ut.as_suffix(start, finish)
+
+    def get_extension(self, format):
+        return ut.str_or_none(self.formats[format]["ext"], "mp4")
 
     def _ffmpeg_source(self, start, end, format):
         time = ["-ss", f"{start}"]
         if end != self.duration:       # fix video trimming at the end
             time += ["-to", f"{end}"]
-        urls = self.download_urls(format)
+        urls = self.formats[format]["urls"].split()
         if len(urls) == 2:
             video, audio = urls
             return time + ["-i", f"{video}"] + \

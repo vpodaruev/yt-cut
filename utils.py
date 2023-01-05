@@ -100,6 +100,10 @@ def format_resolution(format, default='unknown'):
 # ------------------------
 
 
+def str_or_none(v, default=None):
+    return v if v else default
+
+
 def make_description(format):
     for key in format.keys():
         if format[key] == "NA":

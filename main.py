@@ -151,7 +151,8 @@ class MainWindow(QMainWindow):
         max_name_len = 128
         if len(name) > max_name_len:
             name = name[: max_name_len]
-        file = name + ut.as_suffix(start, finish) + ".mp4"
+        format = self.timeSpan.get_format()
+        file = name + self.ytVideo.get_suffix(start, finish, format) + ".mp4"
         self.saveAs.set_filename(file)
         self.saveAs.setEnabled(True)
 
