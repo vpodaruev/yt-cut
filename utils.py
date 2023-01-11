@@ -100,6 +100,13 @@ def format_resolution(format, default='unknown'):
 # ------------------------
 
 
+def int_or_none(v, default=None):
+    try:
+        return int(v)
+    except ValueError:
+        return default
+
+
 def str_or_none(v, default=None):
     return v if v else default
 

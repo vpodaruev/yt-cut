@@ -109,7 +109,7 @@ class YoutubeVideo(QObject):
             self.channel = js["channel"] if js["channel"] != "NA" \
                 else js["uploader"]
             self.title = js["title"]
-            self.duration = ut.to_hhmmss(js["duration"])
+            self.duration = ut.to_hhmmss(ut.int_or_none(js["duration"], 0))
             self.info_loaded.emit()
         except CalledProcessFailed as e:
             self.info_failed.emit(f"{e}")
