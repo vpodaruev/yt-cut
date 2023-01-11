@@ -39,13 +39,16 @@ class CalledProcessFailed(CalledProcessError):
         super().__init__(process, msg)
 
 
+default_title = "Title / Название"
+default_channel = "Channel / Канал"
+default_format = "best available format / наилучший доступный формат"
+
+
 class YoutubeVideo(QObject):
     info_loaded = pyqtSignal()
     progress = pyqtSignal(float)
     finished = pyqtSignal(bool, str)
     info_failed = pyqtSignal(str)
-    default_title = "Title / Название"
-    default_channel = "Channel / Канал"
     browsers = ["brave", "chrome", "chromium", "edge",
                 "firefox", "opera", "safari", "vivaldi"]
     video_codecs = {
@@ -63,8 +66,8 @@ class YoutubeVideo(QObject):
     def __init__(self, url):
         super().__init__()
         self.url = url
-        self.title = self.default_title
-        self.channel = self.default_channel
+        self.title = default_title
+        self.channel = default_channel
         self.duration = "0"
         self.formats = None
         self.p = None

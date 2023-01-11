@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import (QWidget, QLabel, QLineEdit,
 
 import gui
 import utils as ut
+import ytvideo as ytv
 
 
 class TimeSpan(QWidget):
@@ -84,7 +85,7 @@ class TimeSpan(QWidget):
             self.formatComboBox.addItem(f)
 
     def clear_format(self):
-        self.set_format(["best available format / наилучший доступный формат"])
+        self.set_format([ytv.default_format])
 
     def get_interval(self):
         return (gui.getLineEditValue(self.fromLineEdit),

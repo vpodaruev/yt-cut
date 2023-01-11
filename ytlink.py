@@ -44,9 +44,9 @@ class YoutubeLink(QWidget):
 
     def reset_title(self, **kwargs):
         channel = kwargs["channel"] if "channel" in kwargs \
-            else ytv.YoutubeVideo.default_channel
+            else ytv.default_channel
         title = kwargs["title"] if "title" in kwargs \
-            else ytv.YoutubeVideo.default_title
+            else ytv.default_title
         self.titleLabel.setText("<b>" + channel + "</b>: " +
                                 title if channel else title)
         self.titleLabel.setToolTip(title)
