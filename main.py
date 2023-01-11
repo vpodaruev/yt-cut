@@ -132,6 +132,7 @@ class MainWindow(QMainWindow):
         self.ytVideo = video
         self.ytVideo.finished.connect(self.download_finished)
         self.ytVideo.progress.connect(self.update_progress)
+        self.timeSpan.set_format(video.get_formats())
         self.timeSpan.set_duration(video.duration, ut.get_url_time(video.url))
         self.timeSpan.setEnabled(True)
 
@@ -150,7 +151,8 @@ class MainWindow(QMainWindow):
         max_name_len = 128
         if len(name) > max_name_len:
             name = name[: max_name_len]
-        file = name + ut.as_suffix(start, finish) + ".mp4"
+        format = self.timeSpan.get_format()
+        file = name + self.ytVideo.get_suffix(start, finish, format) + ".mp4"
         self.saveAs.set_filename(file)
         self.saveAs.setEnabled(True)
 
@@ -182,7 +184,8 @@ class MainWindow(QMainWindow):
             self.duration_in_sec = ut.to_seconds(f) - ut.to_seconds(s)
             self.progressBar.reset()
             try:
-                self.ytVideo.start_download(file, s, f)
+                format = self.timeSpan.get_format()
+                self.ytVideo.start_download(file, s, f, format)
             except ytv.CalledProcessError as e:
                 QMessageBox.critical(self.parent(), "Error", f"{e}")
                 self.ytVideo.cancel_download()

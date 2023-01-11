@@ -39,13 +39,16 @@ class CalledProcessFailed(CalledProcessError):
         super().__init__(process, msg)
 
 
+default_title = "Title / Название"
+default_channel = "Channel / Канал"
+default_format = "best available format / наилучший доступный формат"
+
+
 class YoutubeVideo(QObject):
     info_loaded = pyqtSignal()
     progress = pyqtSignal(float)
     finished = pyqtSignal(bool, str)
     info_failed = pyqtSignal(str)
-    default_title = "Title / Название"
-    default_channel = "Channel / Канал"
     browsers = ["brave", "chrome", "chromium", "edge",
                 "firefox", "opera", "safari", "vivaldi"]
     video_codecs = {
@@ -63,9 +66,10 @@ class YoutubeVideo(QObject):
     def __init__(self, url):
         super().__init__()
         self.url = url
-        self.title = self.default_title
-        self.channel = self.default_channel
+        self.title = default_title
+        self.channel = default_channel
         self.duration = "0"
+        self.formats = None
         self.p = None
         self.time_re = re.compile(r"time=((\d\d[:]){2}\d\d[.]\d\d)")
         self.err_re = re.compile(r"[Ee]rror")
@@ -94,6 +98,7 @@ class YoutubeVideo(QObject):
         opts = self._ytdl_cookies()
         self.p.start(f"{args.youtube_dl}",
                      opts + ["--print", '{ "channel": %(channel)j'
+                                        ', "uploader": %(uploader)j'
                                         ', "title": %(title)j'
                                         ', "duration": %(duration)j }',
                              f"{self.url}"])
@@ -104,11 +109,10 @@ class YoutubeVideo(QObject):
         QGuiApplication.restoreOverrideCursor()
         try:
             js = json.loads(self._check_result())
-            self.channel = js["channel"] if "channel" in js else ""
-            if "title" in js:
-                self.title = js["title"]
-            if "duration" in js:
-                self.duration = ut.to_hhmmss(js["duration"])
+            self.channel = js["channel"] if js["channel"] != "NA" \
+                else js["uploader"]
+            self.title = js["title"]
+            self.duration = ut.to_hhmmss(ut.int_or_none(js["duration"], 0))
             self.info_loaded.emit()
         except CalledProcessFailed as e:
             self.info_failed.emit(f"{e}")
@@ -120,26 +124,56 @@ class YoutubeVideo(QObject):
             return ["-S", "vcodec:h264,acodec:mp3,quality"]
         return []
 
-    def download_urls(self):
+    def request_formats(self, filter="all[vcodec!=none]+ba"
+                                     "/all[vcodec!=none][acodec!=none]/b*"):
         QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self.p = QProcess()
         opts = self._ytdl_cookies()
         opts += self._use_premiere()
-        self.p.start(f"{args.youtube_dl}", opts + ["-g", f"{self.url}"])
+        opts += ["-f", filter] if filter else []
+        self.p.start(f"{args.youtube_dl}",
+                     opts + ["--print",
+                             '{ "format_id": %(format_id)j'
+                             ', "ext": %(ext)j'
+                             ', "resolution": %(resolution)j'
+                             ', "width": %(width)j'
+                             ', "height": %(height)j'
+                             ', "tbr": %(tbr)j'
+                             ', "vcodec": %(vcodec)j'
+                             ', "acodec": %(acodec)j'
+                             ', "size": %(filesize,filesize_approx)j'
+                             ', "format_note": %(format_note)j'
+                             ', "urls": %(urls)j }, ',
+                             f"{self.url}"])
         if self.p.waitForFinished():
             QGuiApplication.restoreOverrideCursor()
-            if result := self._check_result():
-                return result.split()
+            if result := self._check_result().rstrip(",\n\r \t"):
+                formats = json.loads(f'{{ "formats": [{result}] }}')["formats"]
+                self.formats = dict()
+                for i, fmt in zip(range(len(formats)), formats):
+                    desc = ut.make_description(fmt)
+                    self.formats.update({f"{i+1:02d}. {desc}": fmt})
+                return
             else:
                 raise CalledProcessFailed(self.p)
         QGuiApplication.restoreOverrideCursor()
         raise TimeoutExpired(self.p)
 
-    def _ffmpeg_source(self, start, end):
+    def get_formats(self):
+        return list(self.formats.keys())
+
+    def get_suffix(self, start, finish, format):
+        res = ut.format_resolution(self.formats[format])
+        return f"_{res}" + ut.as_suffix(start, finish)
+
+    def get_extension(self, format):
+        return ut.str_or_none(self.formats[format]["ext"], "mp4")
+
+    def _ffmpeg_source(self, start, end, format):
         time = ["-ss", f"{start}"]
         if end != self.duration:       # fix video trimming at the end
             time += ["-to", f"{end}"]
-        urls = self.download_urls()
+        urls = self.formats[format]["urls"].split()
         if len(urls) == 2:
             video, audio = urls
             return time + ["-i", f"{video}"] + \
@@ -160,9 +194,9 @@ class YoutubeVideo(QObject):
             opts += ["-report"] if options.debug["logging"] else []
         return opts
 
-    def start_download(self, filename, start, end):
+    def start_download(self, filename, start, end, format):
         opts = []
-        opts += self._ffmpeg_source(start, end)
+        opts += self._ffmpeg_source(start, end, format)
         opts += self._ffmpeg_codecs()
         opts += self._ffmpeg_debug()
         self.p = QProcess()
