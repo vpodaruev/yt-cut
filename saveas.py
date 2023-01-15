@@ -40,7 +40,10 @@ class SaveAsFile(QWidget):
         self.changed.emit(bool(file))
 
     def reset(self):
-        tmp = Path(self.get_filename()).parent
+        name = self.get_filename()
+        if not name:
+            return  # nothing to do
+        tmp = Path(name).parent
         if tmp.is_dir():
             self.directory = tmp
         self.saveAsLineEdit.clear()
