@@ -148,7 +148,7 @@ class MainWindow(QMainWindow):
     @pyqtSlot(str, str)
     def got_interval(self, start, finish):
         name = sanitize_filename(self.ytVideo.title)
-        max_name_len = 128
+        max_name_len = 64
         if len(name) > max_name_len:
             name = name[: max_name_len]
         format = self.timeSpan.get_format()
@@ -168,7 +168,12 @@ class MainWindow(QMainWindow):
             file = self.saveAs.get_filename()
             if not file.endswith(".mp4"):
                 file = file + ".mp4"
-            if Path(file).exists():
+            try:
+                need_approve = Path(file).exists()
+            except OSError as e:
+                QMessageBox.critical(self.parent(), "Error", f"{e}")
+                return
+            if need_approve:
                 if QMessageBox.question(self.parent(), "Question",
                                         f"'{file}'\n"
                                         "File already exists. Overwrite it?"
