@@ -170,8 +170,10 @@ class YoutubeVideo(QObject):
         return ut.str_or_none(self.formats[format]["ext"], "mp4")
 
     def _ffmpeg_source(self, start, end, format):
-        time = ["-ss", f"{start}"]
-        if end != self.duration:       # fix video trimming at the end
+        time = []
+        if ut.to_seconds(start) != 0:    # fix video trimming at the begin
+            time += ["-ss", f"{start}"]
+        if end != self.duration:         # fix video trimming at the end
             time += ["-to", f"{end}"]
         urls = self.formats[format]["urls"].split()
         if len(urls) == 2:
