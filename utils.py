@@ -115,11 +115,11 @@ def make_description(format):
     for key in format.keys():
         if format[key] == "NA":
             format[key] = None
-    tbr = float_or_none(format.get("tbr"))
+    vbr = float_or_none(format.get("vbr"))
     desc = [
         format_resolution(format),
         format.get("ext"),
-        f"{int(tbr)}kb/s" if tbr else None,
+        f"{int(vbr)}kb/s" if vbr else None,
         format.get("vcodec"),
         format.get("acodec"),
         format_bytes(format.get("size")),

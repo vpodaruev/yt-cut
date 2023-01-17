@@ -139,7 +139,7 @@ class YoutubeVideo(QObject):
                              ', "resolution": %(resolution)j'
                              ', "width": %(width)j'
                              ', "height": %(height)j'
-                             ', "tbr": %(tbr)j'
+                             ', "vbr": %(vbr)j'
                              ', "vcodec": %(vcodec)j'
                              ', "acodec": %(acodec)j'
                              ', "size": %(filesize,filesize_approx)j'
