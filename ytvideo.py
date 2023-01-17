@@ -195,23 +195,25 @@ class YoutubeVideo(QObject):
         raise RuntimeError("download URLs: " + str(urls))
 
     def _ffmpeg_codecs(self):
-        codecs = options.codecs
-        if not codecs:
-            return []
+        codecs = options.codecs if options else None
         return ["-c:v", codecs["video"],
-                "-c:a", codecs["audio"]]
+                "-c:a", codecs["audio"]] if codecs else []
+
+    def _ffmpeg_keep_vbr(self, format):
+        keep_vbr = options.keep_vbr if options else None
+        vbr = ut.float_or_none(self.formats[format]["vbr"])
+        return ["-b:v", f"{vbr}K"] if vbr and keep_vbr else []
 
     def _ffmpeg_debug(self):
-        opts = []
-        if options:
-            opts += ["-report"] if options.debug["logging"] else []
-        return opts
+        debug = options.debug if options else None
+        return ["-report"] if debug["logging"] else []
 
     def start_download(self, filename, start, end, format):
         opts = []
         opts += self._ffmpeg_use_gpu()
         opts += self._ffmpeg_source(start, end, format)
         opts += self._ffmpeg_codecs()
+        opts += self._ffmpeg_keep_vbr(format)
         opts += self._ffmpeg_debug()
         self.p = QProcess()
         self.p.readyReadStandardError.connect(self.parse_progress)
