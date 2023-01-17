@@ -55,6 +55,7 @@ class YoutubeVideo(QObject):
         "copy": "Copy from source",
         "h264": "H.264 / AVC / MPEG-4 AVC"
                 " / MPEG-4 part 10 (Intel Quick Sync Video acceleration)",
+        "h264_nvenc": "H.264 with NVIDIA hardware acceleration",
         "mpeg4": "MPEG-4 part 2"
     }
     audio_codecs = {
@@ -169,6 +170,14 @@ class YoutubeVideo(QObject):
     def get_extension(self, format):
         return ut.str_or_none(self.formats[format]["ext"], "mp4")
 
+    def _ffmpeg_use_gpu(self):
+        codecs = options.codecs
+        if not codecs or not codecs["video"].endswith("_nvenc"):
+            return []
+        return ["-vsync", "0",
+                "-hwaccel", "cuda",
+                "-hwaccel_output_format", "cuda"]
+
     def _ffmpeg_source(self, start, end, format):
         time = []
         if ut.to_seconds(start) != 0:    # fix video trimming at the begin
@@ -186,9 +195,11 @@ class YoutubeVideo(QObject):
         raise RuntimeError("download URLs: " + str(urls))
 
     def _ffmpeg_codecs(self):
-        codecs = options.codecs if options else None
+        codecs = options.codecs
+        if not codecs:
+            return []
         return ["-c:v", codecs["video"],
-                "-c:a", codecs["audio"]] if codecs else []
+                "-c:a", codecs["audio"]]
 
     def _ffmpeg_debug(self):
         opts = []
@@ -198,6 +209,7 @@ class YoutubeVideo(QObject):
 
     def start_download(self, filename, start, end, format):
         opts = []
+        opts += self._ffmpeg_use_gpu()
         opts += self._ffmpeg_source(start, end, format)
         opts += self._ffmpeg_codecs()
         opts += self._ffmpeg_debug()
