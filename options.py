@@ -18,6 +18,7 @@ class ToolOptions:
         self.codecs = {"video": "copy",
                        "audio": "copy"}
         self.debug = {"logging": False}
+        self.keep_vbr = False
 
 
 class Options(QWidget, ToolOptions):
@@ -64,12 +65,18 @@ class Options(QWidget, ToolOptions):
             self.acodecComboBox.addItem(codec)
         self.acodecComboBox.currentTextChanged.connect(self.set_audio_codec)
 
+        self.vbr = QCheckBox("Keep original VBR")
+        self.vbr.setToolTip("Preserve original video bitrate when converting"
+                            " / Сохранить исходный битрейт видео при конвертировании")
+        self.vbr.toggled.connect(self.toggle_keep_vbr)
+
         codecLayout = QGridLayout()
         codecLayout.addWidget(self.premiere, 0, 0, 1, 2)
         codecLayout.addWidget(vcodecLabel, 1, 0)
         codecLayout.addWidget(self.vcodecComboBox, 1, 1)
         codecLayout.addWidget(acodecLabel, 2, 0)
         codecLayout.addWidget(self.acodecComboBox, 2, 1)
+        codecLayout.addWidget(self.vbr, 3, 0, 1, 2)
         codecGroup.setLayout(codecLayout)
 
         debugGroup = QGroupBox("Debug")
@@ -120,6 +127,10 @@ class Options(QWidget, ToolOptions):
     @pyqtSlot(str)
     def set_audio_codec(self, name):
         self.codecs["audio"] = name
+
+    @pyqtSlot(bool)
+    def toggle_keep_vbr(self, ok):
+        self.keep_vbr = ok
 
     @pyqtSlot(int)
     def set_logging(self, state):
