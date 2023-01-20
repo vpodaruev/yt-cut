@@ -49,20 +49,6 @@ class YoutubeVideo(QObject):
     progress = pyqtSignal(float)
     finished = pyqtSignal(bool, str)
     info_failed = pyqtSignal(str)
-    browsers = ["brave", "chrome", "chromium", "edge",
-                "firefox", "opera", "safari", "vivaldi"]
-    video_codecs = {
-        "copy": "Copy from source",
-        "h264": "H.264 / AVC / MPEG-4 AVC"
-                " / MPEG-4 part 10 (Intel Quick Sync Video acceleration)",
-        "h264_nvenc": "H.264 with NVIDIA hardware acceleration",
-        "mpeg4": "MPEG-4 part 2"
-    }
-    audio_codecs = {
-        "copy": "Copy from source",
-        "aac": "AAC (Advanced Audio Coding)",
-        "mp3": "libmp3lame MP3 (MPEG audio layer 3)",
-    }
 
     def __init__(self, url):
         super().__init__()
