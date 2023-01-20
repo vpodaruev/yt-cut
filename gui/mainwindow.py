@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import (
      QProgressBar, QSizePolicy, QMessageBox, QTabWidget,
      QMainWindow)
 
-import gui.gui as gui
+import gui.common as com
 import gui.saveas as svs
 import gui.timespan as tms
 import gui.ytlink as ytl
@@ -55,7 +55,7 @@ international project
         QMessageBox.information(self.parent(), "About", self._about_text)
 
 
-class DownloadButton(gui.ToggleSwitch):
+class DownloadButton(com.ToggleSwitch):
     def __init__(self):
         views = [(QIcon("icons/cancel.png"),   "Cancel / Отменить",    ""),
                  (QIcon("icons/download.png"), "Download / Загрузить", "")]
