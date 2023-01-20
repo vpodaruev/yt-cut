@@ -10,14 +10,15 @@ from PyQt6.QtWidgets import (
      QProgressBar, QSizePolicy, QMessageBox, QTabWidget,
      QMainWindow)
 
-import gui
-import utils as ut
+import gui.gui as gui
+import gui.saveas as svs
+import gui.timespan as tms
+import gui.ytlink as ytl
+import gui.ytvideo as ytv
+
 import options as opt
-import saveas as svs
-import timespan as tms
+import utils as ut
 import version as vrs
-import ytlink as ytl
-import ytvideo as ytv
 
 
 class AboutLabel(QLabel):

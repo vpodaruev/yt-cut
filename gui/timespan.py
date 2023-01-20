@@ -5,9 +5,10 @@ from PyQt6.QtGui import QRegularExpressionValidator
 from PyQt6.QtWidgets import (QWidget, QLabel, QLineEdit,
                              QComboBox, QMessageBox, QHBoxLayout, QVBoxLayout)
 
-import gui
+import gui.gui as gui
+import gui.ytvideo as ytv
+
 import utils as ut
-import ytvideo as ytv
 
 
 class TimeSpan(QWidget):

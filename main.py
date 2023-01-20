@@ -5,10 +5,10 @@ from argparse import ArgumentParser
 from pathlib import Path
 import sys
 
-from PyQt6.QtWidgets import (QApplication)
+from PyQt6.QtWidgets import QApplication
 
-import mainwindow as mw
-import ytvideo as ytv
+import gui.mainwindow as mw
+import gui.ytvideo as ytv
 
 
 if __name__ == "__main__":

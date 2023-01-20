@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (
      QWidget, QLabel, QComboBox, QCheckBox,
      QPushButton, QGroupBox, QVBoxLayout, QGridLayout)
 
-import ytvideo as ytv
+import gui.ytvideo as ytv
 
 
 class ToolOptions:

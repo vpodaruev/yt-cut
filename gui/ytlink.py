@@ -5,8 +5,8 @@ from PyQt6.QtWidgets import (
      QWidget, QLabel, QLineEdit,
      QMessageBox, QHBoxLayout, QVBoxLayout)
 
-import gui
-import ytvideo as ytv
+import gui.gui as gui
+import gui.ytvideo as ytv
 
 
 class YoutubeLink(QWidget):
