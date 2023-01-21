@@ -5,9 +5,10 @@ from PyQt6.QtGui import QRegularExpressionValidator
 from PyQt6.QtWidgets import (QWidget, QLabel, QLineEdit,
                              QComboBox, QMessageBox, QHBoxLayout, QVBoxLayout)
 
-import gui
+import gui.common as com
+import gui.ytvideo as ytv
+
 import utils as ut
-import ytvideo as ytv
 
 
 class TimeSpan(QWidget):
@@ -34,7 +35,7 @@ class TimeSpan(QWidget):
         formatComboBox.setEditable(False)
         self.formatComboBox = formatComboBox
 
-        goButton = gui.GoButton()
+        goButton = com.GoButton()
         goButton.clicked.connect(self.interval_edited)
         self.goButton = goButton
 
@@ -88,8 +89,8 @@ class TimeSpan(QWidget):
         self.set_format([ytv.default_format])
 
     def get_interval(self):
-        return (gui.getLineEditValue(self.fromLineEdit),
-                gui.getLineEditValue(self.toLineEdit))
+        return (com.getLineEditValue(self.fromLineEdit),
+                com.getLineEditValue(self.toLineEdit))
 
     def set_interval(self, start, finish):
         self.fromLineEdit.setText(ut.to_hhmmss(start))
@@ -100,8 +101,8 @@ class TimeSpan(QWidget):
         self.toLineEdit.setText("")
 
     def check_and_beautify(self):
-        s, f = (gui.getLineEditValue(self.fromLineEdit),
-                gui.getLineEditValue(self.toLineEdit))
+        s, f = (com.getLineEditValue(self.fromLineEdit),
+                com.getLineEditValue(self.toLineEdit))
         si, fi = (ut.to_seconds(s),
                   ut.to_seconds(f))
         if fi <= si:

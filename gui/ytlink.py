@@ -5,8 +5,8 @@ from PyQt6.QtWidgets import (
      QWidget, QLabel, QLineEdit,
      QMessageBox, QHBoxLayout, QVBoxLayout)
 
-import gui
-import ytvideo as ytv
+import gui.common as com
+import gui.ytvideo as ytv
 
 
 class YoutubeLink(QWidget):
@@ -20,7 +20,7 @@ class YoutubeLink(QWidget):
         self.linkLineEdit = QLineEdit()
         self.linkLineEdit.setPlaceholderText("video link / ссылка на видео")
 
-        self.goButton = gui.GoButton()
+        self.goButton = com.GoButton()
         self.goButton.clicked.connect(self.link_edited)
 
         hLayout = QHBoxLayout()
