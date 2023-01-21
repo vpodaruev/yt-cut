@@ -14,12 +14,6 @@ args = None     # set in main module
 options = None  # same thing
 
 
-class NotYoutubeURL(RuntimeError):
-    def __init__(self, url):
-        super().__init__("Seems not a youtube URL"
-                         f" / Похоже, это не ютуб ссылка\nURL: '{url}'")
-
-
 class CalledProcessError(RuntimeError):
     def __init__(self, process, msg):
         super().__init__(msg + f"\n{process.program()} {process.arguments()}")

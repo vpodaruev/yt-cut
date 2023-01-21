@@ -69,18 +69,11 @@ class YoutubeLink(QWidget):
             self.linkLineEdit.clear()
             return
 
-        try:
-            self.video = ytv.YoutubeVideo(url)
-            self.video.info_loaded.connect(self.process_info)
-            self.video.info_failed.connect(self.process_error)
-            self.video.request_info()
-            self.setEnabled(False)
-        except ytv.NotYoutubeURL:
-            QMessageBox.warning(self.parent(), "Warning",
-                                "It doesn't seem to be a YouTube link"
-                                f" / Похоже, это не ютуб-ссылка\nURL: '{url}'")
-            self.linkLineEdit.clear()
-            self.setEnabled(True)
+        self.video = ytv.YoutubeVideo(url)
+        self.video.info_loaded.connect(self.process_info)
+        self.video.info_failed.connect(self.process_error)
+        self.video.request_info()
+        self.setEnabled(False)
 
     @pyqtSlot(str)
     def process_error(self, msg):
