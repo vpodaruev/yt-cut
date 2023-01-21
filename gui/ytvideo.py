@@ -4,7 +4,7 @@ import json
 import re
 import sys
 
-from PyQt6.QtCore import pyqtSignal, pyqtSlot, Qt, QObject, QProcess
+from PyQt6.QtCore import (pyqtSignal, pyqtSlot, Qt, QObject, QProcess)
 from PyQt6.QtGui import QGuiApplication
 
 import utils as ut
