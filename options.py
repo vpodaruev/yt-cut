@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from PyQt6.QtCore import pyqtSlot, Qt
+from PyQt6.QtCore import pyqtSlot
 from PyQt6.QtWidgets import (
      QWidget, QLabel, QComboBox, QCheckBox,
      QPushButton, QGroupBox, QVBoxLayout, QGridLayout)
@@ -31,8 +31,8 @@ class ToolOptions:
         self.use_premiere = False
         self.codecs = {"video": "copy",
                        "audio": "copy"}
-        self.debug = {"logging": False}
         self.keep_vbr = False
+        self.debug = {"logging": False}
 
 
 class Options(QWidget, ToolOptions):
@@ -56,10 +56,10 @@ class Options(QWidget, ToolOptions):
         authGroup.setLayout(authLayout)
 
         codecGroup = QGroupBox("Codecs")
-        self.premiere = QCheckBox("Premiere Pro")
-        self.premiere.setToolTip("Use codecs for Premiere Pro"
-                                 " / Кодеки для монтажа в Премьере")
-        self.premiere.toggled.connect(self.toggle_premiere)
+        self.premiereCheckBox = QCheckBox("Premiere Pro")
+        self.premiereCheckBox.setToolTip("Use codecs for Premiere Pro"
+                                         " / Кодеки для монтажа в Премьере")
+        self.premiereCheckBox.toggled.connect(self.toggle_premiere)
 
         vcodecLabel = QLabel("Video:")
         vcodecLabel.setToolTip("Convert video via FFMPEG"
@@ -79,24 +79,24 @@ class Options(QWidget, ToolOptions):
             self.acodecComboBox.addItem(codec)
         self.acodecComboBox.currentTextChanged.connect(self.set_audio_codec)
 
-        self.vbr = QCheckBox("Keep original VBR")
-        self.vbr.setToolTip("Preserve original video bitrate when converting"
-                            " / Сохранить исходный битрейт видео при конвертировании")
-        self.vbr.toggled.connect(self.toggle_keep_vbr)
+        self.vbrCheckBox = QCheckBox("Keep original VBR")
+        self.vbrCheckBox.setToolTip("Preserve original video bitrate when converting"
+                                    " / Сохранить исходный битрейт видео при конвертировании")
+        self.vbrCheckBox.toggled.connect(self.toggle_keep_vbr)
 
         codecLayout = QGridLayout()
-        codecLayout.addWidget(self.premiere, 0, 0, 1, 2)
+        codecLayout.addWidget(self.premiereCheckBox, 0, 0, 1, 2)
         codecLayout.addWidget(vcodecLabel, 1, 0)
         codecLayout.addWidget(self.vcodecComboBox, 1, 1)
         codecLayout.addWidget(acodecLabel, 2, 0)
         codecLayout.addWidget(self.acodecComboBox, 2, 1)
-        codecLayout.addWidget(self.vbr, 3, 0, 1, 2)
+        codecLayout.addWidget(self.vbrCheckBox, 3, 0, 1, 2)
         codecGroup.setLayout(codecLayout)
 
         debugGroup = QGroupBox("Debug")
         self.logCheckBox = QCheckBox("Logging")
         self.logCheckBox.setToolTip("Write FFMPEG report")
-        self.logCheckBox.stateChanged.connect(self.set_logging)
+        self.logCheckBox.toggled.connect(self.toggle_logging)
 
         debugLayout = QVBoxLayout()
         debugLayout.addWidget(self.logCheckBox)
@@ -119,12 +119,12 @@ class Options(QWidget, ToolOptions):
 
     def set_defaults(self):
         super().reset()
+        self.premiereCheckBox.setChecked(self.use_premiere)
         self.browserComboBox.setCurrentText(self.browser)
         self.vcodecComboBox.setCurrentText(self.codecs["video"])
         self.acodecComboBox.setCurrentText(self.codecs["audio"])
-        self.logCheckBox.setCheckState(Qt.CheckState.Checked
-                                       if self.debug["logging"]
-                                       else Qt.CheckState.Unchecked)
+        self.vbrCheckBox.setChecked(self.keep_vbr)
+        self.logCheckBox.setChecked(self.debug["logging"])
 
     @pyqtSlot(str)
     def set_browser(self, name):
@@ -146,6 +146,6 @@ class Options(QWidget, ToolOptions):
     def toggle_keep_vbr(self, ok):
         self.keep_vbr = ok
 
-    @pyqtSlot(int)
-    def set_logging(self, state):
-        self.debug["logging"] = bool(state)
+    @pyqtSlot(bool)
+    def toggle_logging(self, ok):
+        self.debug["logging"] = ok
