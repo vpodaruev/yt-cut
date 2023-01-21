@@ -11,7 +11,8 @@ browsers = ("", "brave", "chrome", "chromium", "edge",
 
 video_codecs = {
     "copy": "Copy from source",
-    "h264": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10 (Intel Quick Sync Video acceleration)",
+    "h264": "H.264 / AVC / MPEG-4 AVC"
+            " / MPEG-4 part 10 (Intel Quick Sync Video acceleration)",
     "h264_nvenc": "H.264 with NVIDIA hardware acceleration",
     "mpeg4": "MPEG-4 part 2"
 }
@@ -80,8 +81,9 @@ class Options(QWidget, ToolOptions):
         self.acodecComboBox.currentTextChanged.connect(self.set_audio_codec)
 
         self.vbrCheckBox = QCheckBox("Keep original VBR")
-        self.vbrCheckBox.setToolTip("Preserve original video bitrate when converting"
-                                    " / Сохранить исходный битрейт видео при конвертировании")
+        self.vbrCheckBox.setToolTip(
+            "Preserve original video bitrate when converting"
+            " / Сохранить исходный битрейт видео при конвертировании")
         self.vbrCheckBox.toggled.connect(self.toggle_keep_vbr)
 
         codecLayout = QGridLayout()

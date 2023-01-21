@@ -14,8 +14,8 @@ import gui.ytvideo as ytv
 
 
 def show_exception_box(log_msg):
-    """Checks if a QApplication instance is available and shows a messagebox with the exception message.
-    If unavailable (non-console application), log an additional notice.
+    """Checks if a QApplication instance is available
+    and shows a messagebox with the exception message.
     """
     errorbox = QMessageBox(window)
     errorbox.setText("Oops. An unexpected error occured:\n{0}".format(log_msg))
@@ -36,7 +36,8 @@ class UncaughtHook(QObject):
         # register as hook with the Python interpreter
         sys.excepthook = self.exception_hook
 
-        # connect signal to execute the message box function always on main thread
+        # connect signal to execute the message box function
+        # always on main thread
         self._exception_caught.connect(show_exception_box)
 
     def exception_hook(self, exc_type, exc_value, exc_traceback):
@@ -48,7 +49,8 @@ class UncaughtHook(QObject):
             sys.__excepthook__(exc_type, exc_value, exc_traceback)
         else:
             log_msg = '\n'.join([''.join(traceback.format_tb(exc_traceback)),
-                                 '{0}: {1}'.format(exc_type.__name__, exc_value)])
+                                 '{0}: {1}'.format(exc_type.__name__,
+                                                   exc_value)])
 
             # trigger message box show
             self._exception_caught.emit(log_msg)

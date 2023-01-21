@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-from PyQt6.QtCore import pyqtSignal, pyqtSlot, QRegularExpression
+from PyQt6.QtCore import (pyqtSignal, pyqtSlot, QRegularExpression)
 from PyQt6.QtGui import QRegularExpressionValidator
-from PyQt6.QtWidgets import (QWidget, QLabel, QLineEdit,
-                             QComboBox, QMessageBox, QHBoxLayout, QVBoxLayout)
+from PyQt6.QtWidgets import (
+    QWidget, QLabel, QLineEdit,
+    QComboBox, QMessageBox, QHBoxLayout, QVBoxLayout)
 
 import gui.common as com
 import gui.ytvideo as ytv
