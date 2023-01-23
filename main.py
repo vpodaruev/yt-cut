@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser
-
+import json
 from pathlib import Path
 import sys
 import traceback
@@ -10,6 +10,7 @@ from PyQt6.QtCore import (QObject, pyqtSignal)
 from PyQt6.QtWidgets import (QApplication, QMessageBox)
 
 import gui.mainwindow as mw
+import version as vrs
 import gui.ytvideo as ytv
 
 
@@ -20,6 +21,17 @@ def show_exception_box(log_msg):
     errorbox = QMessageBox(window)
     errorbox.setText("Oops. An unexpected error occured:\n{0}".format(log_msg))
     errorbox.exec()
+
+
+def dump_state():
+    """Return program state as JSON string"""
+    return json.dumps({
+            "name": "yt-cut",
+            "version": vrs.get_version(),
+            "state": window.dump(),
+            },
+            indent=4,
+            ensure_ascii=False)
 
 
 def restore_on_error():

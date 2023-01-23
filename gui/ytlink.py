@@ -93,3 +93,9 @@ class YoutubeLink(QWidget):
             self.got_link.emit(v)
         except ytv.CalledProcessError as e:
             self.process_error(f"{e}")
+
+    def dump(self):
+        return {
+            "url": self.linkLineEdit.text() if self.linkLineEdit else None,
+            "title": self.titleLabel.text() if self.titleLabel else None,
+        }

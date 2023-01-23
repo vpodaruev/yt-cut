@@ -210,3 +210,10 @@ class MainWindow(QMainWindow):
         self.ytLink.setEnabled(True)
         self.timeSpan.setEnabled(True)
         self.saveAs.setEnabled(True)
+
+    def dump(self):
+        return {
+            "ytLink": self.ytLink.dump() if self.ytLink else None,
+            "timeSpan": self.timeSpan.dump() if self.timeSpan else None,
+            "saveAs": self.saveAs.dump() if self.saveAs else None,
+        }

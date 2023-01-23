@@ -35,6 +35,15 @@ class ToolOptions:
         self.keep_vbr = False
         self.debug = {"logging": False}
 
+    def dump(self):
+        return {
+            "browser": self.browser,
+            "use_premiere": self.use_premiere,
+            "codecs": self.codecs,
+            "keep_vbr": self.keep_vbr,
+            "debug": self.debug,
+        }
+
 
 class Options(QWidget, ToolOptions):
     def __init__(self):
@@ -121,8 +130,8 @@ class Options(QWidget, ToolOptions):
 
     def set_defaults(self):
         super().reset()
-        self.premiereCheckBox.setChecked(self.use_premiere)
         self.browserComboBox.setCurrentText(self.browser)
+        self.premiereCheckBox.setChecked(self.use_premiere)
         self.vcodecComboBox.setCurrentText(self.codecs["video"])
         self.acodecComboBox.setCurrentText(self.codecs["audio"])
         self.vbrCheckBox.setChecked(self.keep_vbr)

@@ -22,6 +22,10 @@ class TimeSpan(QWidget):
         timingPattern = QRegularExpression(r"\d+([:,.' ][0-5]\d){0,2}")
         timingValidator = QRegularExpressionValidator(timingPattern)
 
+        formatComboBox = QComboBox()
+        formatComboBox.setEditable(False)
+        self.formatComboBox = formatComboBox
+
         fromLabel = QLabel("Cut from:")
         fromLineEdit = QLineEdit()
         fromLineEdit.setValidator(timingValidator)
@@ -31,10 +35,6 @@ class TimeSpan(QWidget):
         toLineEdit = QLineEdit()
         toLineEdit.setValidator(timingValidator)
         self.toLineEdit = toLineEdit
-
-        formatComboBox = QComboBox()
-        formatComboBox.setEditable(False)
-        self.formatComboBox = formatComboBox
 
         goButton = com.GoButton()
         goButton.clicked.connect(self.interval_edited)
@@ -137,3 +137,10 @@ class TimeSpan(QWidget):
             self.toLineEdit.setEnabled(True)
             self.edit_interval.emit()
         self.goButton.toggle()
+
+    def dump(self):
+        return {
+            "format": self.get_format() if self.formatComboBox else None,
+            "from": self.fromLineEdit.text() if self.fromLineEdit else None,
+            "to": self.toLineEdit.text() if self.toLineEdit else None,
+        }
