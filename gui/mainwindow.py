@@ -216,4 +216,5 @@ class MainWindow(QMainWindow):
             "ytLink": self.ytLink.dump() if self.ytLink else None,
             "timeSpan": self.timeSpan.dump() if self.timeSpan else None,
             "saveAs": self.saveAs.dump() if self.saveAs else None,
+            "options": ytv.options.dump() if ytv.options else None,
         }
