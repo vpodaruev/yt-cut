@@ -7,6 +7,7 @@ import sys
 from PyQt6.QtCore import (pyqtSignal, pyqtSlot, Qt, QObject, QProcess)
 from PyQt6.QtGui import QGuiApplication
 
+import options as opt
 import utils as ut
 
 
@@ -64,9 +65,11 @@ class YoutubeVideo(QObject):
         elif self.p.exitStatus() != QProcess.ExitStatus.NormalExit:
             err = f"Exit with error code {self.p.error()}. " + err
         else:
-            if err:                          # for debug purposes
-                print(err, file=sys.stderr)
-            return ut.decode(self.p.readAllStandardOutput())
+            if err:
+                opt.logger().warning(err)
+            out = ut.decode(self.p.readAllStandardOutput())
+            opt.logger().debug(out)
+            return out
         raise CalledProcessFailed(self.p, err)
 
     def _ytdl_cookies(self):
@@ -96,6 +99,7 @@ class YoutubeVideo(QObject):
             self.duration = ut.to_hhmmss(ut.int_or_none(js["duration"], 0))
             self.info_loaded.emit()
         except CalledProcessFailed as e:
+            opt.logger().exception(f"{e}")
             self.info_failed.emit(f"{e}")
         finally:
             self.p = None
@@ -172,7 +176,7 @@ class YoutubeVideo(QObject):
         elif len(urls) == 1:
             video, = urls
             return time + ["-i", f"{video}"]
-        raise RuntimeError("download URLs: " + str(urls))
+        raise RuntimeError(f"download URLs: {urls}")
 
     def _ffmpeg_codecs(self):
         codecs = options.codecs if options else None
@@ -203,6 +207,7 @@ class YoutubeVideo(QObject):
     @pyqtSlot()
     def parse_progress(self):
         result = ut.decode(self.p.readAllStandardError())
+        opt.logger().debug(result)
         if m := re.search(self.time_re, result):
             time = m.group(1)
             self.progress.emit(ut.from_ffmpeg_time(time))

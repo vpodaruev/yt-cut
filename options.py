@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import logging
+
 from PyQt6.QtCore import pyqtSlot
 from PyQt6.QtWidgets import (
      QWidget, QLabel, QComboBox, QCheckBox,
@@ -21,6 +23,14 @@ audio_codecs = {
     "aac": "AAC (Advanced Audio Coding)",
     "mp3": "libmp3lame MP3 (MPEG audio layer 3)",
 }
+
+logging.basicConfig(filename="yt-cut.log", encoding="utf-8",
+                    format="%(asctime)s:%(module)s:%(levelname)s: %(message)s",
+                    level=logging.CRITICAL)
+
+
+def logger():
+    return logging.getLogger("yt-cut")
 
 
 class ToolOptions:

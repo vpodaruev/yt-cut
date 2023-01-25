@@ -10,21 +10,20 @@ from PyQt6.QtCore import (QObject, pyqtSignal)
 from PyQt6.QtWidgets import (QApplication, QMessageBox)
 
 import gui.mainwindow as mw
+import options as opt
 import version as vrs
 import gui.ytvideo as ytv
 
 
 def show_exception_box(log_msg):
-    """Checks if a QApplication instance is available
-    and shows a messagebox with the exception message.
-    """
+    """Shows a messagebox with the exception message"""
     errorbox = QMessageBox(window)
-    errorbox.setText("Oops. An unexpected error occured:\n{0}".format(log_msg))
+    errorbox.setText(f"Oops. Unexpected error occured:\n{log_msg}")
     errorbox.exec()
 
 
 def dump_state():
-    """Return program state as JSON string"""
+    """Returns program state as JSON string"""
     return json.dumps({
             "name": "yt-cut",
             "version": vrs.get_version(),
@@ -63,6 +62,9 @@ class UncaughtHook(QObject):
             log_msg = '\n'.join([''.join(traceback.format_tb(exc_traceback)),
                                  '{0}: {1}'.format(exc_type.__name__,
                                                    exc_value)])
+            # dump to log-file
+            state = dump_state()
+            opt.logger().critical(f"Uncaught exception\n{log_msg}\n{state}")
 
             # trigger message box show
             self._exception_caught.emit(log_msg)
