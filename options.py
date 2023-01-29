@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import logging
+
 from PyQt6.QtCore import pyqtSlot
 from PyQt6.QtWidgets import (
      QWidget, QLabel, QComboBox, QCheckBox,
@@ -11,7 +13,8 @@ browsers = ("", "brave", "chrome", "chromium", "edge",
 
 video_codecs = {
     "copy": "Copy from source",
-    "h264": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10 (Intel Quick Sync Video acceleration)",
+    "h264": "H.264 / AVC / MPEG-4 AVC"
+            " / MPEG-4 part 10 (Intel Quick Sync Video acceleration)",
     "h264_nvenc": "H.264 with NVIDIA hardware acceleration",
     "mpeg4": "MPEG-4 part 2"
 }
@@ -20,6 +23,23 @@ audio_codecs = {
     "aac": "AAC (Advanced Audio Coding)",
     "mp3": "libmp3lame MP3 (MPEG audio layer 3)",
 }
+
+log_level = {
+    "disable": None,
+    "critical": logging.CRITICAL,
+    "error": logging.ERROR,
+    "warning": logging.WARNING,
+    "info": logging.INFO,
+    "debug": logging.DEBUG,
+}
+
+logging.basicConfig(filename="yt-cut.log", encoding="utf-8",
+                    format="%(asctime)s:%(module)s:%(levelname)s: %(message)s",
+                    level=logging.CRITICAL)
+
+
+def logger():
+    return logging.getLogger("yt-cut")
 
 
 class ToolOptions:
@@ -32,7 +52,17 @@ class ToolOptions:
         self.codecs = {"video": "copy",
                        "audio": "copy"}
         self.keep_vbr = False
-        self.debug = {"logging": False}
+        self.debug = {"ffmpeg": False,
+                      "logLevel": "critical"}
+
+    def dump(self):
+        return {
+            "browser": self.browser,
+            "use_premiere": self.use_premiere,
+            "codecs": self.codecs,
+            "keep_vbr": self.keep_vbr,
+            "debug": self.debug,
+        }
 
 
 class Options(QWidget, ToolOptions):
@@ -80,8 +110,9 @@ class Options(QWidget, ToolOptions):
         self.acodecComboBox.currentTextChanged.connect(self.set_audio_codec)
 
         self.vbrCheckBox = QCheckBox("Keep original VBR")
-        self.vbrCheckBox.setToolTip("Preserve original video bitrate when converting"
-                                    " / Сохранить исходный битрейт видео при конвертировании")
+        self.vbrCheckBox.setToolTip(
+            "Preserve original video bitrate when converting"
+            " / Сохранить исходное качество видео при конвертировании")
         self.vbrCheckBox.toggled.connect(self.toggle_keep_vbr)
 
         codecLayout = QGridLayout()
@@ -94,13 +125,23 @@ class Options(QWidget, ToolOptions):
         codecGroup.setLayout(codecLayout)
 
         debugGroup = QGroupBox("Debug")
-        self.logCheckBox = QCheckBox("Logging")
+        self.logCheckBox = QCheckBox("FFMPEG log")
         self.logCheckBox.setToolTip("Write FFMPEG report")
         self.logCheckBox.toggled.connect(self.toggle_logging)
 
-        debugLayout = QVBoxLayout()
-        debugLayout.addWidget(self.logCheckBox)
-        debugLayout.addStretch()
+        logLevelLabel = QLabel("Logging:")
+        logLevelLabel.setToolTip("Logging level / Уровень журналирования")
+        self.logLevelComboBox = QComboBox()
+        self.logLevelComboBox.setEditable(False)
+        for level in log_level.keys():
+            self.logLevelComboBox.addItem(level)
+        self.logLevelComboBox.setCurrentText(self.debug["logLevel"])
+        self.logLevelComboBox.currentTextChanged.connect(self.set_log_level)
+
+        debugLayout = QGridLayout()
+        debugLayout.addWidget(self.logCheckBox, 0, 0, 1, 2)
+        debugLayout.addWidget(logLevelLabel, 1, 0)
+        debugLayout.addWidget(self.logLevelComboBox, 1, 1)
         debugGroup.setLayout(debugLayout)
 
         self.resetPushButton = QPushButton("Reset")
@@ -108,23 +149,24 @@ class Options(QWidget, ToolOptions):
 
         layout = QGridLayout()
         layout.addWidget(authGroup, 0, 0)
-        layout.addWidget(codecGroup, 0, 1)
+        layout.addWidget(codecGroup, 0, 1, 2, 1)
         layout.setColumnStretch(2, 1)
-        layout.addWidget(debugGroup, 0, 3)
-        layout.setRowStretch(1, 1)
-        layout.addWidget(self.resetPushButton, 2, 3)
+        layout.addWidget(debugGroup, 1, 0)
+        layout.setRowStretch(2, 1)
+        layout.addWidget(self.resetPushButton, 3, 3)
         self.setLayout(layout)
 
         self.set_defaults()
 
     def set_defaults(self):
         super().reset()
-        self.premiereCheckBox.setChecked(self.use_premiere)
         self.browserComboBox.setCurrentText(self.browser)
+        self.premiereCheckBox.setChecked(self.use_premiere)
         self.vcodecComboBox.setCurrentText(self.codecs["video"])
         self.acodecComboBox.setCurrentText(self.codecs["audio"])
         self.vbrCheckBox.setChecked(self.keep_vbr)
-        self.logCheckBox.setChecked(self.debug["logging"])
+        self.logCheckBox.setChecked(self.debug["ffmpeg"])
+        self.logLevelComboBox.setCurrentText(self.debug["logLevel"])
 
     @pyqtSlot(str)
     def set_browser(self, name):
@@ -148,4 +190,13 @@ class Options(QWidget, ToolOptions):
 
     @pyqtSlot(bool)
     def toggle_logging(self, ok):
-        self.debug["logging"] = ok
+        self.debug["ffmpeg"] = ok
+
+    @pyqtSlot(str)
+    def set_log_level(self, name):
+        self.debug["logLevel"] = name
+        if log_level[name] is not None:
+            logging.disable(logging.NOTSET)
+            logger().setLevel(log_level[name])
+        else:
+            logging.disable(logging.CRITICAL)

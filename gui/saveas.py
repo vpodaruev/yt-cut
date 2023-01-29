@@ -64,3 +64,8 @@ class SaveAsFile(QWidget):
                                      directory=self.get_filename(),
                                      filter="Video Files (*.mp4)")
         self.set_filename(file)
+
+    def dump(self):
+        return {
+            "file": self.get_filename() if self.saveAsLineEdit else None,
+        }

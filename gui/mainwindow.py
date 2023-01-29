@@ -169,6 +169,7 @@ class MainWindow(QMainWindow):
             try:
                 need_approve = Path(file).exists()
             except OSError as e:
+                opt.logger().exception(f"{e}")
                 QMessageBox.critical(self.parent(), "Error", f"{e}")
                 return
             if need_approve:
@@ -190,6 +191,7 @@ class MainWindow(QMainWindow):
                 format = self.timeSpan.get_format()
                 self.ytVideo.start_download(file, s, f, format)
             except ytv.CalledProcessError as e:
+                opt.logger().exception(f"{e}")
                 QMessageBox.critical(self.parent(), "Error", f"{e}")
                 self.ytVideo.cancel_download()
         else:
@@ -210,3 +212,11 @@ class MainWindow(QMainWindow):
         self.ytLink.setEnabled(True)
         self.timeSpan.setEnabled(True)
         self.saveAs.setEnabled(True)
+
+    def dump(self):
+        return {
+            "ytLink": self.ytLink.dump() if self.ytLink else None,
+            "timeSpan": self.timeSpan.dump() if self.timeSpan else None,
+            "saveAs": self.saveAs.dump() if self.saveAs else None,
+            "options": ytv.options.dump() if ytv.options else None,
+        }
