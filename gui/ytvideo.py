@@ -190,7 +190,7 @@ class YoutubeVideo(QObject):
 
     def _ffmpeg_debug(self):
         debug = options.debug if options else None
-        return ["-report"] if debug["logging"] else []
+        return ["-report"] if debug["ffmpeg"] else []
 
     def start_download(self, filename, start, end, format):
         opts = []

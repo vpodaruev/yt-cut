@@ -43,7 +43,7 @@ class ToolOptions:
         self.codecs = {"video": "copy",
                        "audio": "copy"}
         self.keep_vbr = False
-        self.debug = {"logging": False}
+        self.debug = {"ffmpeg": False}
 
     def dump(self):
         return {
@@ -102,7 +102,7 @@ class Options(QWidget, ToolOptions):
         self.vbrCheckBox = QCheckBox("Keep original VBR")
         self.vbrCheckBox.setToolTip(
             "Preserve original video bitrate when converting"
-            " / Сохранить исходный битрейт видео при конвертировании")
+            " / Сохранить исходное качество видео при конвертировании")
         self.vbrCheckBox.toggled.connect(self.toggle_keep_vbr)
 
         codecLayout = QGridLayout()
@@ -115,7 +115,7 @@ class Options(QWidget, ToolOptions):
         codecGroup.setLayout(codecLayout)
 
         debugGroup = QGroupBox("Debug")
-        self.logCheckBox = QCheckBox("Logging")
+        self.logCheckBox = QCheckBox("FFMPEG log")
         self.logCheckBox.setToolTip("Write FFMPEG report")
         self.logCheckBox.toggled.connect(self.toggle_logging)
 
@@ -129,11 +129,11 @@ class Options(QWidget, ToolOptions):
 
         layout = QGridLayout()
         layout.addWidget(authGroup, 0, 0)
-        layout.addWidget(codecGroup, 0, 1)
+        layout.addWidget(codecGroup, 0, 1, 2, 1)
         layout.setColumnStretch(2, 1)
-        layout.addWidget(debugGroup, 0, 3)
-        layout.setRowStretch(1, 1)
-        layout.addWidget(self.resetPushButton, 2, 3)
+        layout.addWidget(debugGroup, 1, 0)
+        layout.setRowStretch(2, 1)
+        layout.addWidget(self.resetPushButton, 3, 3)
         self.setLayout(layout)
 
         self.set_defaults()
@@ -145,7 +145,7 @@ class Options(QWidget, ToolOptions):
         self.vcodecComboBox.setCurrentText(self.codecs["video"])
         self.acodecComboBox.setCurrentText(self.codecs["audio"])
         self.vbrCheckBox.setChecked(self.keep_vbr)
-        self.logCheckBox.setChecked(self.debug["logging"])
+        self.logCheckBox.setChecked(self.debug["ffmpeg"])
 
     @pyqtSlot(str)
     def set_browser(self, name):
@@ -169,4 +169,4 @@ class Options(QWidget, ToolOptions):
 
     @pyqtSlot(bool)
     def toggle_logging(self, ok):
-        self.debug["logging"] = ok
+        self.debug["ffmpeg"] = ok
