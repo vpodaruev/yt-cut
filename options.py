@@ -24,6 +24,15 @@ audio_codecs = {
     "mp3": "libmp3lame MP3 (MPEG audio layer 3)",
 }
 
+log_level = {
+    "disable": None,
+    "critical": logging.CRITICAL,
+    "error": logging.ERROR,
+    "warning": logging.WARNING,
+    "info": logging.INFO,
+    "debug": logging.DEBUG,
+}
+
 logging.basicConfig(filename="yt-cut.log", encoding="utf-8",
                     format="%(asctime)s:%(module)s:%(levelname)s: %(message)s",
                     level=logging.CRITICAL)
@@ -43,7 +52,8 @@ class ToolOptions:
         self.codecs = {"video": "copy",
                        "audio": "copy"}
         self.keep_vbr = False
-        self.debug = {"ffmpeg": False}
+        self.debug = {"ffmpeg": False,
+                      "logLevel": "critical"}
 
     def dump(self):
         return {
@@ -119,9 +129,19 @@ class Options(QWidget, ToolOptions):
         self.logCheckBox.setToolTip("Write FFMPEG report")
         self.logCheckBox.toggled.connect(self.toggle_logging)
 
-        debugLayout = QVBoxLayout()
-        debugLayout.addWidget(self.logCheckBox)
-        debugLayout.addStretch()
+        logLevelLabel = QLabel("Logging:")
+        logLevelLabel.setToolTip("Logging level / Уровень журналирования")
+        self.logLevelComboBox = QComboBox()
+        self.logLevelComboBox.setEditable(False)
+        for level in log_level.keys():
+            self.logLevelComboBox.addItem(level)
+        self.logLevelComboBox.setCurrentText(self.debug["logLevel"])
+        self.logLevelComboBox.currentTextChanged.connect(self.set_log_level)
+
+        debugLayout = QGridLayout()
+        debugLayout.addWidget(self.logCheckBox, 0, 0, 1, 2)
+        debugLayout.addWidget(logLevelLabel, 1, 0)
+        debugLayout.addWidget(self.logLevelComboBox, 1, 1)
         debugGroup.setLayout(debugLayout)
 
         self.resetPushButton = QPushButton("Reset")
@@ -146,6 +166,7 @@ class Options(QWidget, ToolOptions):
         self.acodecComboBox.setCurrentText(self.codecs["audio"])
         self.vbrCheckBox.setChecked(self.keep_vbr)
         self.logCheckBox.setChecked(self.debug["ffmpeg"])
+        self.logLevelComboBox.setCurrentText(self.debug["logLevel"])
 
     @pyqtSlot(str)
     def set_browser(self, name):
@@ -170,3 +191,12 @@ class Options(QWidget, ToolOptions):
     @pyqtSlot(bool)
     def toggle_logging(self, ok):
         self.debug["ffmpeg"] = ok
+
+    @pyqtSlot(str)
+    def set_log_level(self, name):
+        self.debug["logLevel"] = name
+        if log_level[name] is not None:
+            logging.disable(logging.NOTSET)
+            logger().setLevel(log_level[name])
+        else:
+            logging.disable(logging.CRITICAL)
