@@ -6,12 +6,11 @@
 - crash on URLs like [this](https://youtu.be/Dyhq-rwrYPU?list=PLc7FkXgDXnsMsk1CGNe4Iif1_e3hlFOlo), which comes from a video list
 
 ## ToDo
-- revise timing validation, make a strict check later when goes next step
 - codec tooltips
-- feature: go-next by Enter (may be even full keyboard navigation)
-- feature: add progress visualization in icon
-- feature: check-box to open the containing folder after download is complete.
+- go-next by Enter (keyboard navigation)
+- add progress visualization in icon
+- check-box to open the containing folder after download is complete.
 - parse full timing (from - to) if was pasted in a line edit
 - embed `yt-dlp`
-- feature: add status bar
-- feature: copy/paste info from/to clipboard in JSON
+- add status bar
+- copy/paste info from/to clipboard in JSON
