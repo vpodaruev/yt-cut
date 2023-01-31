@@ -20,7 +20,7 @@ class TimeSpan(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        timingPattern = QRegularExpression(r"\d+([:,.' ][0-5]\d){0,2}")
+        timingPattern = QRegularExpression(r"\d*([:,.' ][0-5]?\d?){0,2}")
         timingValidator = QRegularExpressionValidator(timingPattern)
 
         formatComboBox = QComboBox()
@@ -108,15 +108,15 @@ class TimeSpan(QWidget):
         si, fi = (ut.to_seconds(s),
                   ut.to_seconds(f))
         if fi <= si:
-            raise ValueError(f"The initial value ({s}) must be smaller"
-                             f" than the final value ({f})!"
-                             f" / Начальное значение ({s}) должно быть"
-                             f" меньше конечного ({f})!")
+            s, f = ut.to_hhmmss(si), ut.to_hhmmss(fi)
+            raise ValueError(
+                f"{s}-{f}\nStart value must be less than end value!"
+                " / Начальное значение должно быть меньше конечного!")
         elif ut.to_seconds(self.duration) < fi:
-            raise ValueError(f"The final value ({f}) must"
-                             f" not exceed the duration ({self.duration})!"
-                             f" / Конечное значение ({f}) не должно превышать"
-                             f" продолжительность ({self.duration})!")
+            f = ut.to_hhmmss(fi)
+            raise ValueError(
+                f"{f}<{self.duration}\nEnd value must not exceed duration!"
+                " / Конечное значение не должно превышать продолжительность!")
         self.set_interval(si, fi)
 
     @pyqtSlot()
