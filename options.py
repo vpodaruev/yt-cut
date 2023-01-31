@@ -5,7 +5,7 @@ import logging
 from PyQt6.QtCore import pyqtSlot
 from PyQt6.QtWidgets import (
      QWidget, QLabel, QComboBox, QCheckBox,
-     QPushButton, QGroupBox, QVBoxLayout, QGridLayout)
+     QPushButton, QGroupBox, QGridLayout)
 
 
 browsers = ("", "brave", "chrome", "chromium", "edge",
