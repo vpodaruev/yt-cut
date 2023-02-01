@@ -2,7 +2,6 @@
 
 import json
 import re
-import sys
 
 from PyQt6.QtCore import (pyqtSignal, pyqtSlot, Qt, QObject, QProcess)
 from PyQt6.QtGui import QGuiApplication
@@ -104,8 +103,8 @@ class YoutubeVideo(QObject):
         finally:
             self.p = None
 
-    def _use_premiere(self):
-        if options and options.use_premiere:
+    def _prefer_avc(self):
+        if options and options.prefer_avc:
             return ["-S", "vcodec:h264,acodec:mp3,quality"]
         return []
 
@@ -114,7 +113,7 @@ class YoutubeVideo(QObject):
         QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         self.p = QProcess()
         opts = self._ytdl_cookies()
-        opts += self._use_premiere()
+        opts += self._prefer_avc()
         opts += ["-f", filter] if filter else []
         self.p.start(f"{args.youtube_dl}",
                      opts + ["--print",

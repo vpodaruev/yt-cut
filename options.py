@@ -12,16 +12,16 @@ browsers = ("", "brave", "chrome", "chromium", "edge",
             "firefox", "opera", "safari", "vivaldi")
 
 video_codecs = {
-    "copy": "Copy from source",
+    "copy": "Use codec from source without conversion / Без конвертации",
     "h264": "H.264 / AVC / MPEG-4 AVC"
             " / MPEG-4 part 10 (Intel Quick Sync Video acceleration)",
     "h264_nvenc": "H.264 with NVIDIA hardware acceleration",
     "mpeg4": "MPEG-4 part 2"
 }
 audio_codecs = {
-    "copy": "Copy from source",
+    "copy": "Use codec from source without conversion / Без конвертации",
     "aac": "AAC (Advanced Audio Coding)",
-    "mp3": "libmp3lame MP3 (MPEG audio layer 3)",
+    "mp3": "MPEG audio layer 3",
 }
 
 log_level = {
@@ -48,7 +48,7 @@ class ToolOptions:
 
     def reset(self):
         self.browser = browsers[0]
-        self.use_premiere = False
+        self.prefer_avc = True
         self.codecs = {"video": "copy",
                        "audio": "copy"}
         self.keep_vbr = False
@@ -58,7 +58,7 @@ class ToolOptions:
     def dump(self):
         return {
             "browser": self.browser,
-            "use_premiere": self.use_premiere,
+            "prefer_avc": self.prefer_avc,
             "codecs": self.codecs,
             "keep_vbr": self.keep_vbr,
             "debug": self.debug,
@@ -86,9 +86,12 @@ class Options(QWidget, ToolOptions):
         authGroup.setLayout(authLayout)
 
         codecGroup = QGroupBox("Codecs")
-        self.premiereCheckBox = QCheckBox("Premiere Pro")
-        self.premiereCheckBox.setToolTip("Use codecs for Premiere Pro"
-                                         " / Кодеки для монтажа в Премьере")
+        self.premiereCheckBox = QCheckBox("Prefer AVC/AAC")
+        self.premiereCheckBox.setToolTip(
+                "Prefer Advanced Video/Audio Coding, most widely"
+                " used compression standards /\n"
+                "Предпочитать наиболее широко используемые стандарты"
+                " сжатия для видео и аудио")
         self.premiereCheckBox.toggled.connect(self.toggle_premiere)
 
         vcodecLabel = QLabel("Video:")
@@ -98,6 +101,7 @@ class Options(QWidget, ToolOptions):
         self.vcodecComboBox.setEditable(False)
         for codec in video_codecs:
             self.vcodecComboBox.addItem(codec)
+        self.vcodecComboBox.setToolTip(video_codecs[self.codecs["video"]])
         self.vcodecComboBox.currentTextChanged.connect(self.set_video_codec)
 
         acodecLabel = QLabel("Audio:")
@@ -107,6 +111,7 @@ class Options(QWidget, ToolOptions):
         self.acodecComboBox.setEditable(False)
         for codec in audio_codecs:
             self.acodecComboBox.addItem(codec)
+        self.acodecComboBox.setToolTip(audio_codecs[self.codecs["audio"]])
         self.acodecComboBox.currentTextChanged.connect(self.set_audio_codec)
 
         self.vbrCheckBox = QCheckBox("Keep original VBR")
@@ -161,7 +166,7 @@ class Options(QWidget, ToolOptions):
     def set_defaults(self):
         super().reset()
         self.browserComboBox.setCurrentText(self.browser)
-        self.premiereCheckBox.setChecked(self.use_premiere)
+        self.premiereCheckBox.setChecked(self.prefer_avc)
         self.vcodecComboBox.setCurrentText(self.codecs["video"])
         self.acodecComboBox.setCurrentText(self.codecs["audio"])
         self.vbrCheckBox.setChecked(self.keep_vbr)
@@ -174,15 +179,17 @@ class Options(QWidget, ToolOptions):
 
     @pyqtSlot(bool)
     def toggle_premiere(self, ok):
-        self.use_premiere = ok
+        self.prefer_avc = ok
 
     @pyqtSlot(str)
     def set_video_codec(self, name):
         self.codecs["video"] = name
+        self.vcodecComboBox.setToolTip(video_codecs[name])
 
     @pyqtSlot(str)
     def set_audio_codec(self, name):
         self.codecs["audio"] = name
+        self.acodecComboBox.setToolTip(audio_codecs[name])
 
     @pyqtSlot(bool)
     def toggle_keep_vbr(self, ok):

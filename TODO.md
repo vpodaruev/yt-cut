@@ -6,7 +6,6 @@
 - crash on URLs like [this](https://youtu.be/Dyhq-rwrYPU?list=PLc7FkXgDXnsMsk1CGNe4Iif1_e3hlFOlo), which comes from a video list
 
 ## ToDo
-- codec tooltips
 - go-next by Enter (keyboard navigation)
 - add progress visualization in icon
 - check-box to open the containing folder after download is complete.
