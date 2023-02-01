@@ -48,7 +48,7 @@ class ToolOptions:
 
     def reset(self):
         self.browser = browsers[0]
-        self.use_premiere = False
+        self.prefer_avc = False
         self.codecs = {"video": "copy",
                        "audio": "copy"}
         self.keep_vbr = False
@@ -58,7 +58,7 @@ class ToolOptions:
     def dump(self):
         return {
             "browser": self.browser,
-            "use_premiere": self.use_premiere,
+            "prefer_avc": self.prefer_avc,
             "codecs": self.codecs,
             "keep_vbr": self.keep_vbr,
             "debug": self.debug,
@@ -166,7 +166,7 @@ class Options(QWidget, ToolOptions):
     def set_defaults(self):
         super().reset()
         self.browserComboBox.setCurrentText(self.browser)
-        self.premiereCheckBox.setChecked(self.use_premiere)
+        self.premiereCheckBox.setChecked(self.prefer_avc)
         self.vcodecComboBox.setCurrentText(self.codecs["video"])
         self.acodecComboBox.setCurrentText(self.codecs["audio"])
         self.vbrCheckBox.setChecked(self.keep_vbr)
@@ -179,7 +179,7 @@ class Options(QWidget, ToolOptions):
 
     @pyqtSlot(bool)
     def toggle_premiere(self, ok):
-        self.use_premiere = ok
+        self.prefer_avc = ok
 
     @pyqtSlot(str)
     def set_video_codec(self, name):
