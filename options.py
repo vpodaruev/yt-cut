@@ -116,8 +116,8 @@ class Options(QWidget, ToolOptions):
 
         self.vbrCheckBox = QCheckBox("Keep original VBR")
         self.vbrCheckBox.setToolTip(
-            "Preserve original video bitrate when converting"
-            " / Сохранить исходное качество видео при конвертировании")
+            "Preserve original video bitrate when converting /\n"
+            "Сохранить исходное качество видео при конвертировании")
         self.vbrCheckBox.toggled.connect(self.toggle_keep_vbr)
 
         codecLayout = QGridLayout()
