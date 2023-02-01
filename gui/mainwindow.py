@@ -29,13 +29,22 @@ class AboutLabel(QLabel):
         self.setTextFormat(Qt.TextFormat.RichText)
 
 
+yt_dlp_url = '<a href="https://github.com/yt-dlp/yt-dlp">yt-dlp</a>'
+ffmpeg_url = '<a href="https://ffmpeg.org">ffmpeg</a>'
+
+
 class AboutButton(QToolButton):
     _about_text = f"""<p><b><big>YtCut</big></b> - version {vrs.get_version()}
 
-<p>This application is just a GUI wrapper for a small
-part of the features of the console tools <b>yt-dlp</b> and <b>ffmpeg</b>.
-<p>Это приложение - всего лишь графическая обёртка для небольшой
-части возможностей консольных утилит <b>yt-dlp</b> и <b>ffmpeg</b>.
+<p>A simple GUI application for downloading video fragments
+from YouTube or other social networks. It simply wraps the
+console tools {yt_dlp_url} and {ffmpeg_url} to provide a tiny
+fraction of their immense capabilities to everyone.
+
+<p>Простое приложение с графическим интерфейсом для загрузки
+видеофрагментов с YouTube или других социальных сетей. Оно
+просто использует консольные утилиты {yt_dlp_url} и {ffmpeg_url},
+чтобы предоставить крошечную часть их огромных возможностей каждому.
 
 <p>Inspired by the <a href="https://creativesociety.com">Creative Society</a>
 international project

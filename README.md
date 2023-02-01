@@ -1,6 +1,6 @@
 # YtCut
 
-A simple GUI application for downloading video fragments from YouTube or other social networks. It simply wraps the console tools `yt-dlp` and `ffmpeg` to provide a tiny fraction of their immense capabilities in graphical form.
+A simple GUI application for downloading video fragments from YouTube or other social networks. It simply wraps the console tools `yt-dlp` and `ffmpeg` to provide a tiny fraction of their immense capabilities to everyone.
 
 ![MainWindow](images/main_window.png)
 
@@ -22,6 +22,6 @@ Also you will need the [PyInstaller](https://pypi.org/project/pyinstaller) `Pyth
 ## Dependencies
 
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp) as compiled executable
-- and [ffmpeg](https://ffmpeg.org/)
+- and [ffmpeg](https://ffmpeg.org)
 
 By default it is assumed that they will be placed in the `tools` directory next to `main.py` file or the `YtCut` executable. Use the `--youtube-dl` and `--ffmpeg` options to specify the actual path to each tool.
