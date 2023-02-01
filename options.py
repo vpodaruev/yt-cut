@@ -48,7 +48,7 @@ class ToolOptions:
 
     def reset(self):
         self.browser = browsers[0]
-        self.prefer_avc = False
+        self.prefer_avc = True
         self.codecs = {"video": "copy",
                        "audio": "copy"}
         self.keep_vbr = False
