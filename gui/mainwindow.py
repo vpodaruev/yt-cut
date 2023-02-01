@@ -42,9 +42,9 @@ console tools {yt_dlp_url} and {ffmpeg_url} to provide a tiny
 fraction of their immense capabilities to everyone.
 
 <p>Простое приложение с графическим интерфейсом для загрузки
-видеофрагментов с YouTube или других социальных сетей. Оно
-просто использует консольные утилиты {yt_dlp_url} и {ffmpeg_url},
-чтобы предоставить крошечную часть их огромных возможностей каждому.
+видеофрагментов с YouTube или других социальных сетей. Использует
+консольные утилиты {yt_dlp_url} и {ffmpeg_url} и делает крошечную
+часть их огромных возможностей доступной каждому.
 
 <p>Inspired by the <a href="https://creativesociety.com">Creative Society</a>
 international project
