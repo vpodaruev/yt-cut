@@ -12,14 +12,14 @@ browsers = ("", "brave", "chrome", "chromium", "edge",
             "firefox", "opera", "safari", "vivaldi")
 
 video_codecs = {
-    "copy": "Copy from source",
+    "copy": "Use codec from source without conversion / Без конвертации",
     "h264": "H.264 / AVC / MPEG-4 AVC"
             " / MPEG-4 part 10 (Intel Quick Sync Video acceleration)",
     "h264_nvenc": "H.264 with NVIDIA hardware acceleration",
     "mpeg4": "MPEG-4 part 2"
 }
 audio_codecs = {
-    "copy": "Copy from source",
+    "copy": "Use codec from source without conversion / Без конвертации",
     "aac": "AAC (Advanced Audio Coding)",
     "mp3": "MPEG audio layer 3",
 }
@@ -86,7 +86,7 @@ class Options(QWidget, ToolOptions):
         authGroup.setLayout(authLayout)
 
         codecGroup = QGroupBox("Codecs")
-        self.premiereCheckBox = QCheckBox("Prefer AVC + AAC")
+        self.premiereCheckBox = QCheckBox("Prefer AVC/AAC")
         self.premiereCheckBox.setToolTip(
                 "Prefer Advanced Video/Audio Coding, most widely"
                 " used compression standards /\n"
