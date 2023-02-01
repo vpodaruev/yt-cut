@@ -86,9 +86,12 @@ class Options(QWidget, ToolOptions):
         authGroup.setLayout(authLayout)
 
         codecGroup = QGroupBox("Codecs")
-        self.premiereCheckBox = QCheckBox("Premiere Pro")
-        self.premiereCheckBox.setToolTip("Use codecs for Premiere Pro"
-                                         " / Кодеки для монтажа в Премьере")
+        self.premiereCheckBox = QCheckBox("Prefer AVC + AAC")
+        self.premiereCheckBox.setToolTip(
+                "Prefer Advanced Video/Audio Coding, most widely"
+                " used compression standards /\n"
+                "Предпочитать наиболее широко используемые стандарты"
+                " сжатия для видео и аудио")
         self.premiereCheckBox.toggled.connect(self.toggle_premiere)
 
         vcodecLabel = QLabel("Video:")
