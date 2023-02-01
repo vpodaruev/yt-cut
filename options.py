@@ -21,7 +21,7 @@ video_codecs = {
 audio_codecs = {
     "copy": "Copy from source",
     "aac": "AAC (Advanced Audio Coding)",
-    "mp3": "libmp3lame MP3 (MPEG audio layer 3)",
+    "mp3": "MPEG audio layer 3",
 }
 
 log_level = {
@@ -101,6 +101,7 @@ class Options(QWidget, ToolOptions):
         self.vcodecComboBox.setEditable(False)
         for codec in video_codecs:
             self.vcodecComboBox.addItem(codec)
+        self.vcodecComboBox.setToolTip(video_codecs[self.codecs["video"]])
         self.vcodecComboBox.currentTextChanged.connect(self.set_video_codec)
 
         acodecLabel = QLabel("Audio:")
@@ -110,6 +111,7 @@ class Options(QWidget, ToolOptions):
         self.acodecComboBox.setEditable(False)
         for codec in audio_codecs:
             self.acodecComboBox.addItem(codec)
+        self.acodecComboBox.setToolTip(audio_codecs[self.codecs["audio"]])
         self.acodecComboBox.currentTextChanged.connect(self.set_audio_codec)
 
         self.vbrCheckBox = QCheckBox("Keep original VBR")
@@ -182,10 +184,12 @@ class Options(QWidget, ToolOptions):
     @pyqtSlot(str)
     def set_video_codec(self, name):
         self.codecs["video"] = name
+        self.vcodecComboBox.setToolTip(video_codecs[name])
 
     @pyqtSlot(str)
     def set_audio_codec(self, name):
         self.codecs["audio"] = name
+        self.acodecComboBox.setToolTip(audio_codecs[name])
 
     @pyqtSlot(bool)
     def toggle_keep_vbr(self, ok):
