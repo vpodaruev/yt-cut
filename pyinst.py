@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-## This code is based on yt-dlp source code
+# This code is based on yt-dlp source code
 
 import os
 import platform
@@ -9,15 +9,25 @@ import sys
 
 from PyInstaller.__main__ import run as run_pyinstaller
 
-OS_NAME, MACHINE, ARCH = sys.platform, platform.machine(), platform.architecture()[0][:2]
-if MACHINE in ('x86_64', 'AMD64') or ('i' in MACHINE and '86' in MACHINE):
-    # NB: Windows x86 has MACHINE = AMD64 irrespective of bitness
+
+def read_file(fname):
+    with open(fname, encoding='utf-8') as f:
+        return f.read()
+
+
+# Get the version without importing the package
+def read_version(fname='version.py'):
+    exec(compile(read_file(fname), fname, 'exec'))
+    return locals()['__version__']
+
+
+OS_NAME, MACHINE, ARCH = sys.platform, platform.machine().lower(), platform.architecture()[0][:2]
+if MACHINE in ('x86', 'x86_64', 'amd64', 'i386', 'i686'):
     MACHINE = 'x86' if ARCH == '32' else ''
 
 
 def main():
-    opts = parse_options()
-    version = read_version('version.py')
+    opts, version = parse_options(), read_version()
 
     onedir = '--onedir' in opts or '-D' in opts
     if not onedir and '-F' not in opts and '--onefile' not in opts:
@@ -60,19 +70,12 @@ def parse_options():
     return opts
 
 
-# Get the version from version.py without importing the package
-def read_version(fname):
-    with open(fname, encoding='utf-8') as f:
-        exec(compile(f.read(), fname, 'exec'))
-        return locals()['__version__']
-
-
 def exe(onedir):
     """@returns (name, path)"""
     name = '_'.join(filter(None, (
         'yt-cut',
         {'win32': '', 'darwin': 'macos'}.get(OS_NAME, OS_NAME),
-        MACHINE
+        MACHINE,
     )))
     return name, ''.join(filter(None, (
         'dist/',
@@ -83,7 +86,6 @@ def exe(onedir):
 
 
 def version_to_list(version):
-    version = version.split("-")[0]    # truncate dev suffix
     version_list = version.split('.')
     return list(map(int, version_list)) + [0] * (4 - len(version_list))
 
@@ -96,7 +98,6 @@ def set_version_info(exe, version):
 def windows_set_version(exe, version):
     from PyInstaller.utils.win32.versioninfo import (
         FixedFileInfo,
-        SetVersion,
         StringFileInfo,
         StringStruct,
         StringTable,
@@ -104,6 +105,11 @@ def windows_set_version(exe, version):
         VarStruct,
         VSVersionInfo,
     )
+
+    try:
+        from PyInstaller.utils.win32.versioninfo import SetVersion
+    except ImportError:  # Pyinstaller >= 5.8
+        from PyInstaller.utils.win32.versioninfo import write_version_info_to_executable as SetVersion
 
     version_list = version_to_list(version)
     suffix = MACHINE and f'_{MACHINE}'
@@ -141,9 +147,11 @@ def copy_all_needs(dist):
 
 
 def make_archive(dist, version):
+    import datetime as dt
     arch = dist.with_name("yt-cut")
     os.rename(dist, arch)
-    shutil.make_archive(f"yt-cut_v{version}", "zip",
+    today = dt.date.today().strftime("%Y%m%d")
+    shutil.make_archive(f"yt-cut_v{version}+{today}_win10_x64", "zip",
                         root_dir=arch.parent, base_dir=arch, verbose=True)
     os.rename(arch, dist)    # restore the dist name
 
