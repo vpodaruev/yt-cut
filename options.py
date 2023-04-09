@@ -2,7 +2,8 @@
 
 import logging
 
-from PyQt6.QtCore import pyqtSlot
+from PyQt6.QtCore import (pyqtSlot, Qt, QProcess)
+from PyQt6.QtGui import QGuiApplication
 from PyQt6.QtWidgets import (
      QWidget, QLabel, QComboBox, QCheckBox,
      QPushButton, QGroupBox, QGridLayout, QVBoxLayout)
@@ -145,7 +146,7 @@ class Options(QWidget, ToolOptions):
 
         thirdPartyGroup = QGroupBox("Third party")
         self.updateYtDlpPushButton = QPushButton("Update")
-#        self.resetPushButton.clicked.connect(self.set_defaults)
+        self.updateYtDlpPushButton.clicked.connect(self.update_third_party)
 
         thirdPartyLayout = QVBoxLayout()
         thirdPartyLayout.addWidget(self.updateYtDlpPushButton)
@@ -210,3 +211,17 @@ class Options(QWidget, ToolOptions):
             ut.logger().setLevel(log_level[name])
         else:
             logging.disable(logging.CRITICAL)
+
+    def update_third_party(self):
+        QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        p = QProcess()
+        p.start(f"{ut.yt_dlp()}", ["-U"])
+        if p.waitForFinished():
+            QGuiApplication.restoreOverrideCursor()
+            if result := ut.check_output(p):
+                print(result)
+                return
+            else:
+                raise ut.CalledProcessFailed(p)
+        QGuiApplication.restoreOverrideCursor()
+        raise ut.TimeoutExpired(p)
