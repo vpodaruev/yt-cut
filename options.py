@@ -5,7 +5,7 @@ import logging
 from PyQt6.QtCore import pyqtSlot
 from PyQt6.QtWidgets import (
      QWidget, QLabel, QComboBox, QCheckBox,
-     QPushButton, QGroupBox, QGridLayout)
+     QPushButton, QGroupBox, QGridLayout, QVBoxLayout)
 
 
 browsers = ("", "brave", "chrome", "chromium", "edge",
@@ -149,6 +149,14 @@ class Options(QWidget, ToolOptions):
         debugLayout.addWidget(self.logLevelComboBox, 1, 1)
         debugGroup.setLayout(debugLayout)
 
+        thirdPartyGroup = QGroupBox("Third party")
+        self.updateYtDlpPushButton = QPushButton("Update")
+#        self.resetPushButton.clicked.connect(self.set_defaults)
+
+        thirdPartyLayout = QVBoxLayout()
+        thirdPartyLayout.addWidget(self.updateYtDlpPushButton)
+        thirdPartyGroup.setLayout(thirdPartyLayout)
+
         self.resetPushButton = QPushButton("Reset")
         self.resetPushButton.clicked.connect(self.set_defaults)
 
@@ -158,6 +166,7 @@ class Options(QWidget, ToolOptions):
         layout.setColumnStretch(2, 1)
         layout.addWidget(debugGroup, 1, 0)
         layout.setRowStretch(2, 1)
+        layout.addWidget(thirdPartyGroup, 0, 3)
         layout.addWidget(self.resetPushButton, 3, 3)
         self.setLayout(layout)
 
