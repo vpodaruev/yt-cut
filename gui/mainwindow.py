@@ -199,7 +199,7 @@ class MainWindow(QMainWindow):
             try:
                 format = self.timeSpan.get_format()
                 self.ytVideo.start_download(file, s, f, format)
-            except ytv.CalledProcessError as e:
+            except ut.CalledProcessError as e:
                 ut.logger().exception(f"{e}")
                 QMessageBox.critical(self.parent(), "Error", f"{e}")
                 self.ytVideo.cancel_download()

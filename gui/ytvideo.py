@@ -14,25 +14,6 @@ args = None     # set in main module
 options = None  # same thing
 
 
-class CalledProcessError(RuntimeError):
-    def __init__(self, process, msg):
-        super().__init__(msg + f"\n{process.program()} {process.arguments()}")
-
-
-class TimeoutExpired(CalledProcessError):
-    def __init__(self, process):
-        super().__init__(process, "Timeout expired, no response"
-                                  " / Тайм-аут итёк, ответа нет")
-
-
-class CalledProcessFailed(CalledProcessError):
-    def __init__(self, process, msg=None):
-        if not msg:
-            msg = "Process finished with errors" \
-                  " / Процесс завершился с ошибками"
-        super().__init__(process, msg)
-
-
 default_title = "Title / Название"
 default_channel = "Channel / Канал"
 default_format = "best available format / наилучший доступный формат"
@@ -57,20 +38,6 @@ class YoutubeVideo(QObject):
         self.debug = False
         self.error = ""
 
-    def _check_result(self):
-        err = ut.decode(self.p.readAllStandardError())
-        if ut.has_error(err):
-            pass
-        elif self.p.exitStatus() != QProcess.ExitStatus.NormalExit:
-            err = f"Exit with error code {self.p.error()}. " + err
-        else:
-            if err:
-                opt.logger().warning(err)
-            out = ut.decode(self.p.readAllStandardOutput())
-            opt.logger().debug(out)
-            return out
-        raise CalledProcessFailed(self.p, err)
-
     def _ytdl_cookies(self):
         browser = options.browser if options else None
         return ["--cookies-from-browser", browser] if browser else []
@@ -91,13 +58,13 @@ class YoutubeVideo(QObject):
     def process_info(self):
         QGuiApplication.restoreOverrideCursor()
         try:
-            js = json.loads(self._check_result())
+            js = json.loads(ut.check_output(self.p))
             self.channel = js["channel"] if js["channel"] != "NA" \
                 else js["uploader"]
             self.title = js["title"]
             self.duration = ut.to_hhmmss(ut.int_or_none(js["duration"], 0))
             self.info_loaded.emit()
-        except CalledProcessFailed as e:
+        except ut.CalledProcessFailed as e:
             ut.logger().exception(f"{e}")
             self.info_failed.emit(f"{e}")
         finally:
@@ -131,7 +98,7 @@ class YoutubeVideo(QObject):
                              f"{self.url}"])
         if self.p.waitForFinished():
             QGuiApplication.restoreOverrideCursor()
-            if result := self._check_result().rstrip(",\n\r \t"):
+            if result := ut.check_output(self.p).rstrip(",\n\r \t"):
                 formats = json.loads(f'{{ "formats": [{result}] }}')["formats"]
                 self.formats = dict()
                 for i, fmt in zip(range(len(formats)), formats):
@@ -139,9 +106,9 @@ class YoutubeVideo(QObject):
                     self.formats.update({f"{i+1:02d}. {desc}": fmt})
                 return
             else:
-                raise CalledProcessFailed(self.p)
+                raise ut.CalledProcessFailed(self.p)
         QGuiApplication.restoreOverrideCursor()
-        raise TimeoutExpired(self.p)
+        raise ut.TimeoutExpired(self.p)
 
     def get_formats(self):
         return list(self.formats.keys())

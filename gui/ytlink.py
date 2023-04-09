@@ -94,7 +94,7 @@ class YoutubeLink(QWidget):
         try:
             v.request_formats()
             self.got_link.emit(v)
-        except ytv.CalledProcessError as e:
+        except ut.CalledProcessError as e:
             ut.logger().exception(f"{e}")
             self.process_error(f"{e}")
 
