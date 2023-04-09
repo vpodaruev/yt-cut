@@ -124,7 +124,7 @@ class TimeSpan(QWidget):
         try:
             self.check_and_beautify()
         except ValueError as e:
-            opt.logger().exception(f"{e}")
+            ut.logger().exception(f"{e}")
             QMessageBox.warning(self.parent(), "Warning", f"{e}")
             return
 

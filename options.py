@@ -7,6 +7,8 @@ from PyQt6.QtWidgets import (
      QWidget, QLabel, QComboBox, QCheckBox,
      QPushButton, QGroupBox, QGridLayout, QVBoxLayout)
 
+import utils as ut
+
 
 browsers = ("", "brave", "chrome", "chromium", "edge",
             "firefox", "opera", "safari", "vivaldi")
@@ -32,14 +34,6 @@ log_level = {
     "info": logging.INFO,
     "debug": logging.DEBUG,
 }
-
-logging.basicConfig(filename="yt-cut.log", encoding="utf-8",
-                    format="%(asctime)s:%(module)s:%(levelname)s: %(message)s",
-                    level=logging.CRITICAL)
-
-
-def logger():
-    return logging.getLogger("yt-cut")
 
 
 class ToolOptions:
@@ -213,6 +207,6 @@ class Options(QWidget, ToolOptions):
         self.debug["logLevel"] = name
         if log_level[name] is not None:
             logging.disable(logging.NOTSET)
-            logger().setLevel(log_level[name])
+            ut.logger().setLevel(log_level[name])
         else:
             logging.disable(logging.CRITICAL)

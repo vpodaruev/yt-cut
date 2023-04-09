@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
 
+import logging
 import math
 import re
 from urllib.parse import urlparse, parse_qs
+
+
+logging.basicConfig(filename="yt-cut.log", encoding="utf-8",
+                    format="%(asctime)s:%(module)s:%(levelname)s: %(message)s",
+                    level=logging.CRITICAL)
+
+
+def logger():
+    return logging.getLogger("yt-cut")
 
 
 def to_hhmmss(seconds, delim=":"):

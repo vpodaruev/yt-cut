@@ -10,7 +10,7 @@ from PyQt6.QtCore import (QObject, pyqtSignal)
 from PyQt6.QtWidgets import (QApplication, QMessageBox)
 
 import gui.mainwindow as mw
-import options as opt
+import utils as ut
 import version as vrs
 import gui.ytvideo as ytv
 
@@ -64,7 +64,7 @@ class UncaughtHook(QObject):
                                                    exc_value)])
             # dump to log-file
             state = dump_state()
-            opt.logger().critical(f"Uncaught exception\n{log_msg}\n{state}")
+            ut.logger().critical(f"Uncaught exception\n{log_msg}\n{state}")
 
             # trigger message box show
             self._exception_caught.emit(log_msg)

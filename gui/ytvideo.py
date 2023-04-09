@@ -98,7 +98,7 @@ class YoutubeVideo(QObject):
             self.duration = ut.to_hhmmss(ut.int_or_none(js["duration"], 0))
             self.info_loaded.emit()
         except CalledProcessFailed as e:
-            opt.logger().exception(f"{e}")
+            ut.logger().exception(f"{e}")
             self.info_failed.emit(f"{e}")
         finally:
             self.p = None
@@ -206,7 +206,7 @@ class YoutubeVideo(QObject):
     @pyqtSlot()
     def parse_progress(self):
         result = ut.decode(self.p.readAllStandardError())
-        opt.logger().debug(result)
+        ut.logger().debug(result)
         if m := re.search(self.time_re, result):
             time = m.group(1)
             self.progress.emit(ut.from_ffmpeg_time(time))
