@@ -89,7 +89,7 @@ if __name__ == "__main__":
     qt_exception_hook = UncaughtHook()
 
     # access to other modules
-    ytv.args = args
+    ut.args = args
 
     window = mw.MainWindow()
     window.show()

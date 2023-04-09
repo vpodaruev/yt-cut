@@ -8,6 +8,9 @@ from urllib.parse import urlparse, parse_qs
 from PyQt6.QtCore import QProcess
 
 
+args = None     # set in main module
+
+
 logging.basicConfig(filename="yt-cut.log", encoding="utf-8",
                     format="%(asctime)s:%(module)s:%(levelname)s: %(message)s",
                     level=logging.CRITICAL)
@@ -15,6 +18,16 @@ logging.basicConfig(filename="yt-cut.log", encoding="utf-8",
 
 def logger():
     return logging.getLogger("yt-cut")
+
+
+def yt_dlp():
+    """Return path to `yt-dlp` executable"""
+    return args.youtube_dl
+
+
+def ffmpeg():
+    """Return path to `ffmpeg` executable"""
+    return args.ffmpeg
 
 
 def to_hhmmss(seconds, delim=":"):

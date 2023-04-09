@@ -6,12 +6,10 @@ import re
 from PyQt6.QtCore import (pyqtSignal, pyqtSlot, Qt, QObject, QProcess)
 from PyQt6.QtGui import QGuiApplication
 
-import options as opt
 import utils as ut
 
 
-args = None     # set in main module
-options = None  # same thing
+options = None  # set in main window module
 
 
 default_title = "Title / Название"
@@ -46,7 +44,7 @@ class YoutubeVideo(QObject):
         self.p = QProcess()
         self.p.finished.connect(self.process_info)
         opts = self._ytdl_cookies()
-        self.p.start(f"{args.youtube_dl}",
+        self.p.start(f"{ut.yt_dlp()}",
                      opts + ["--print", '{ "channel": %(channel)j'
                                         ', "uploader": %(uploader)j'
                                         ', "title": %(title)j'
@@ -82,7 +80,7 @@ class YoutubeVideo(QObject):
         opts = self._ytdl_cookies()
         opts += self._prefer_avc()
         opts += ["-f", filter] if filter else []
-        self.p.start(f"{args.youtube_dl}",
+        self.p.start(f"{ut.yt_dlp()}",
                      opts + ["--print",
                              '{ "format_id": %(format_id)j'
                              ', "ext": %(ext)j'
@@ -168,7 +166,7 @@ class YoutubeVideo(QObject):
         self.p = QProcess()
         self.p.readyReadStandardError.connect(self.parse_progress)
         self.p.finished.connect(self.finish_download)
-        self.p.start(f"{args.ffmpeg}", opts + ["-xerror", "-y", f"{filename}"])
+        self.p.start(f"{ut.ffmpeg()}", opts + ["-xerror", "-y", f"{filename}"])
 
     @pyqtSlot()
     def parse_progress(self):

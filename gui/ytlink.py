@@ -8,7 +8,6 @@ from PyQt6.QtWidgets import (
 import gui.common as com
 import gui.ytvideo as ytv
 
-import options as opt
 import utils as ut
 
 
