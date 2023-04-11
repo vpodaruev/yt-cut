@@ -5,7 +5,7 @@ import logging
 from PyQt6.QtCore import (pyqtSlot, Qt, QProcess)
 from PyQt6.QtGui import QGuiApplication
 from PyQt6.QtWidgets import (
-     QWidget, QLabel, QComboBox, QCheckBox,
+     QWidget, QLabel, QComboBox, QMessageBox, QCheckBox,
      QPushButton, QGroupBox, QGridLayout, QVBoxLayout)
 
 import utils as ut
@@ -216,12 +216,18 @@ class Options(QWidget, ToolOptions):
         QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         p = QProcess()
         p.start(f"{ut.yt_dlp()}", ["-U"])
-        if p.waitForFinished():
+        try:
+            if p.waitForFinished():
+                QGuiApplication.restoreOverrideCursor()
+                if status := ut.check_output(p):
+                    QMessageBox.information(self.parent(),
+                                            "Yt-dlp Update Status",
+                                            f"{status}")
+                    ut.logger().info(f"{status}")
+                    return
+                else:
+                    raise ut.CalledProcessFailed(p)
             QGuiApplication.restoreOverrideCursor()
-            if result := ut.check_output(p):
-                print(result)
-                return
-            else:
-                raise ut.CalledProcessFailed(p)
-        QGuiApplication.restoreOverrideCursor()
-        raise ut.TimeoutExpired(p)
+            raise ut.TimeoutExpired(p)
+        except ut.CalledProcessError as e:
+            QMessageBox.critical(self.parent(), "Yt-dlp Update Error", f"{e}")
