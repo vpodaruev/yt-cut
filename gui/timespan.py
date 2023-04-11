@@ -9,7 +9,6 @@ from PyQt6.QtWidgets import (
 import gui.common as com
 import gui.ytvideo as ytv
 
-import options as opt
 import utils as ut
 
 
@@ -124,7 +123,7 @@ class TimeSpan(QWidget):
         try:
             self.check_and_beautify()
         except ValueError as e:
-            opt.logger().exception(f"{e}")
+            ut.logger().exception(f"{e}")
             QMessageBox.warning(self.parent(), "Warning", f"{e}")
             return
 

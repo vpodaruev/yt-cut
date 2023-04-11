@@ -1,8 +1,33 @@
 #!/usr/bin/env python3
 
+import logging
 import math
 import re
 from urllib.parse import urlparse, parse_qs
+
+from PyQt6.QtCore import QProcess
+
+
+args = None     # set in main module
+
+
+logging.basicConfig(filename="yt-cut.log", encoding="utf-8",
+                    format="%(asctime)s:%(module)s:%(levelname)s: %(message)s",
+                    level=logging.CRITICAL)
+
+
+def logger():
+    return logging.getLogger("yt-cut")
+
+
+def yt_dlp():
+    """Return path to `yt-dlp` executable"""
+    return args.youtube_dl
+
+
+def ffmpeg():
+    """Return path to `ffmpeg` executable"""
+    return args.ffmpeg
 
 
 def to_hhmmss(seconds, delim=":"):
@@ -52,6 +77,40 @@ err_pat = re.compile(r"error", re.IGNORECASE)
 
 def has_error(msg):
     return err_pat.search(msg) is not None
+
+
+class CalledProcessError(RuntimeError):
+    def __init__(self, process, msg):
+        super().__init__(msg + f"\n{process.program()} {process.arguments()}")
+
+
+class TimeoutExpired(CalledProcessError):
+    def __init__(self, process):
+        super().__init__(process, "Timeout expired, no response"
+                                  " / Тайм-аут итёк, ответа нет")
+
+
+class CalledProcessFailed(CalledProcessError):
+    def __init__(self, process, msg=None):
+        if not msg:
+            msg = "Process finished with errors" \
+                  " / Процесс завершился с ошибками"
+        super().__init__(process, msg)
+
+
+def check_output(process):
+    err = decode(process.readAllStandardError())
+    if has_error(err):
+        pass
+    elif process.exitStatus() != QProcess.ExitStatus.NormalExit:
+        err = f"Exit with error code {process.error()}. " + err
+    else:
+        if err:
+            logger().warning(err)
+        out = decode(process.readAllStandardOutput())
+        logger().debug(out)
+        return out
+    raise CalledProcessFailed(process, err)
 
 
 # --- Code from yt-dlp ---

@@ -2,10 +2,13 @@
 
 import logging
 
-from PyQt6.QtCore import pyqtSlot
+from PyQt6.QtCore import (pyqtSlot, Qt, QProcess)
+from PyQt6.QtGui import QGuiApplication
 from PyQt6.QtWidgets import (
-     QWidget, QLabel, QComboBox, QCheckBox,
-     QPushButton, QGroupBox, QGridLayout)
+     QWidget, QLabel, QComboBox, QMessageBox, QCheckBox,
+     QPushButton, QGroupBox, QGridLayout, QVBoxLayout)
+
+import utils as ut
 
 
 browsers = ("", "brave", "chrome", "chromium", "edge",
@@ -32,14 +35,6 @@ log_level = {
     "info": logging.INFO,
     "debug": logging.DEBUG,
 }
-
-logging.basicConfig(filename="yt-cut.log", encoding="utf-8",
-                    format="%(asctime)s:%(module)s:%(levelname)s: %(message)s",
-                    level=logging.CRITICAL)
-
-
-def logger():
-    return logging.getLogger("yt-cut")
 
 
 class ToolOptions:
@@ -149,7 +144,18 @@ class Options(QWidget, ToolOptions):
         debugLayout.addWidget(self.logLevelComboBox, 1, 1)
         debugGroup.setLayout(debugLayout)
 
+        thirdPartyGroup = QGroupBox("Third party")
+        self.updateYtDlpPushButton = QPushButton("Update")
+        self.updateYtDlpPushButton.setToolTip("Update Yt-dlp tool /"
+                                              " Обновить программу Yt-dlp")
+        self.updateYtDlpPushButton.clicked.connect(self.update_third_party)
+
+        thirdPartyLayout = QVBoxLayout()
+        thirdPartyLayout.addWidget(self.updateYtDlpPushButton)
+        thirdPartyGroup.setLayout(thirdPartyLayout)
+
         self.resetPushButton = QPushButton("Reset")
+        self.resetPushButton.setToolTip("Reset settings / Сбросить настройки")
         self.resetPushButton.clicked.connect(self.set_defaults)
 
         layout = QGridLayout()
@@ -158,6 +164,7 @@ class Options(QWidget, ToolOptions):
         layout.setColumnStretch(2, 1)
         layout.addWidget(debugGroup, 1, 0)
         layout.setRowStretch(2, 1)
+        layout.addWidget(thirdPartyGroup, 0, 3)
         layout.addWidget(self.resetPushButton, 3, 3)
         self.setLayout(layout)
 
@@ -204,6 +211,26 @@ class Options(QWidget, ToolOptions):
         self.debug["logLevel"] = name
         if log_level[name] is not None:
             logging.disable(logging.NOTSET)
-            logger().setLevel(log_level[name])
+            ut.logger().setLevel(log_level[name])
         else:
             logging.disable(logging.CRITICAL)
+
+    def update_third_party(self):
+        QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        p = QProcess()
+        p.start(f"{ut.yt_dlp()}", ["-U"])
+        try:
+            if p.waitForFinished():
+                QGuiApplication.restoreOverrideCursor()
+                if status := ut.check_output(p):
+                    QMessageBox.information(self.parent(),
+                                            "Yt-dlp Update Status",
+                                            f"{status}")
+                    ut.logger().info(f"{status}")
+                    return
+                else:
+                    raise ut.CalledProcessFailed(p)
+            QGuiApplication.restoreOverrideCursor()
+            raise ut.TimeoutExpired(p)
+        except ut.CalledProcessError as e:
+            QMessageBox.critical(self.parent(), "Yt-dlp Update Error", f"{e}")

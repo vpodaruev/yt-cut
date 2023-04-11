@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import (
 import gui.common as com
 import gui.ytvideo as ytv
 
-import options as opt
+import utils as ut
 
 
 class YoutubeLink(QWidget):
@@ -93,8 +93,8 @@ class YoutubeLink(QWidget):
         try:
             v.request_formats()
             self.got_link.emit(v)
-        except ytv.CalledProcessError as e:
-            opt.logger().exception(f"{e}")
+        except ut.CalledProcessError as e:
+            ut.logger().exception(f"{e}")
             self.process_error(f"{e}")
 
     def dump(self):
