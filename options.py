@@ -146,6 +146,8 @@ class Options(QWidget, ToolOptions):
 
         thirdPartyGroup = QGroupBox("Third party")
         self.updateYtDlpPushButton = QPushButton("Update")
+        self.updateYtDlpPushButton.setToolTip("Update Yt-dlp tool /"
+                                              " Обновить программу Yt-dlp")
         self.updateYtDlpPushButton.clicked.connect(self.update_third_party)
 
         thirdPartyLayout = QVBoxLayout()
@@ -153,6 +155,7 @@ class Options(QWidget, ToolOptions):
         thirdPartyGroup.setLayout(thirdPartyLayout)
 
         self.resetPushButton = QPushButton("Reset")
+        self.resetPushButton.setToolTip("Reset settings / Сбросить настройки")
         self.resetPushButton.clicked.connect(self.set_defaults)
 
         layout = QGridLayout()
