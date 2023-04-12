@@ -3,13 +3,15 @@
 import logging
 import math
 import re
+import pathlib
+import sys
 from urllib.parse import urlparse, parse_qs
 
 from PyQt6.QtCore import QProcess
 
 
+package_dir = pathlib.Path(sys.argv[0]).parent
 args = None     # set in main module
-
 
 logging.basicConfig(filename="yt-cut.log", encoding="utf-8",
                     format="%(asctime)s:%(module)s:%(levelname)s: %(message)s",

@@ -3,6 +3,13 @@
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QPushButton
 
+import utils as ut
+
+
+def icon(location):
+    """Return QIcon with the given `location` relative to package folder"""
+    return QIcon(f"{ut.package_dir/location}")
+
 
 class ToggleSwitch(QPushButton):
     def __init__(self, views):
@@ -28,8 +35,8 @@ class ToggleSwitch(QPushButton):
 
 class GoButton(ToggleSwitch):
     def __init__(self):
-        views = [(QIcon("icons/go-prev.png"), "", "Edit / Редактировать"),
-                 (QIcon("icons/go-next.png"), "", "Go! / Поехали дальше!")]
+        views = [(icon("icons/go-prev.png"), "", "Edit / Редактировать"),
+                 (icon("icons/go-next.png"), "", "Go! / Поехали дальше!")]
         super().__init__(views)
 
 

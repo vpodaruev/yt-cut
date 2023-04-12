@@ -3,10 +3,11 @@
 from pathlib import Path
 
 from PyQt6.QtCore import pyqtSignal
-from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import (
      QWidget, QLabel, QPushButton,
      QLineEdit, QFileDialog, QHBoxLayout)
+
+import gui.common as com
 
 
 class SaveAsFile(QWidget):
@@ -25,7 +26,7 @@ class SaveAsFile(QWidget):
         self.directory = Path.cwd()
 
         saveAsPushButton = QPushButton()
-        saveAsPushButton.setIcon(QIcon("icons/saveAs.png"))
+        saveAsPushButton.setIcon(com.icon("icons/saveAs.png"))
         saveAsPushButton.clicked.connect(self.browse)
         self.saveAsPushButton = saveAsPushButton
 
