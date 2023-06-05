@@ -33,7 +33,8 @@ class YoutubeLink(QWidget):
         self.titleLabel = QLabel()
         self.titleLabel.setTextFormat(Qt.TextFormat.RichText)
         self.titleLabel.setTextInteractionFlags(
-                          Qt.TextInteractionFlag.TextSelectableByMouse)
+                          Qt.TextInteractionFlag.TextBrowserInteraction)
+        self.titleLabel.setOpenExternalLinks(True)
         self.reset_title()
 
         self.video = None

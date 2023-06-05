@@ -48,6 +48,7 @@ class YoutubeVideo(QObject):
                      opts + ["--print", '{ "channel": %(channel)j'
                                         ', "uploader": %(uploader)j'
                                         ', "title": %(title)j'
+                                        ', "thumbnail": %(thumbnail)j'
                                         ', "duration": %(duration)j }',
                              f"{self.url}"])
         QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
@@ -59,7 +60,7 @@ class YoutubeVideo(QObject):
             js = json.loads(ut.check_output(self.p))
             self.channel = js["channel"] if js["channel"] != "NA" \
                 else js["uploader"]
-            self.title = js["title"]
+            self.title = f'<a href={js["thumbnail"]}>{js["title"]}</a>'
             self.duration = ut.to_hhmmss(ut.int_or_none(js["duration"], 0))
             self.info_loaded.emit()
         except ut.CalledProcessFailed as e:
