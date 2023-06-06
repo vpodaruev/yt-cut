@@ -46,13 +46,12 @@ class YoutubeLink(QWidget):
         self.setLayout(layout)
 
     def reset_title(self, **kwargs):
-        channel = kwargs["channel"] if "channel" in kwargs \
-            else ytv.default_channel
-        title = kwargs["title"] if "title" in kwargs \
-            else ytv.default_title
-        self.titleLabel.setText("<b>" + channel + "</b>: " +
-                                title if channel else title)
+        channel = kwargs.get("channel", ytv.default_channel)
+        title = kwargs.get("title", ytv.default_title)
         self.titleLabel.setToolTip(title)
+        if "thumbnail" in kwargs:
+            title = f'<a href="{kwargs["thumbnail"]}">{title}</a>'
+        self.titleLabel.setText("<b>" + channel + "</b>: " + title)
 
     @pyqtSlot()
     def link_edited(self):
@@ -90,7 +89,8 @@ class YoutubeLink(QWidget):
         self.linkLineEdit.setEnabled(False)
         self.goButton.toggle()
         v, self.video = self.video, None
-        self.reset_title(channel=v.channel, title=v.title)
+        self.reset_title(channel=v.channel, title=v.title,
+                         thumbnail=v.thumbnail)
         try:
             v.request_formats()
             self.got_link.emit(v)

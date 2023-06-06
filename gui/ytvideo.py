@@ -28,6 +28,7 @@ class YoutubeVideo(QObject):
         self.url = url
         self.title = default_title
         self.channel = default_channel
+        self.thumbnail = None
         self.duration = "0"
         self.formats = None
         self.p = None
@@ -60,7 +61,8 @@ class YoutubeVideo(QObject):
             js = json.loads(ut.check_output(self.p))
             self.channel = js["channel"] if js["channel"] != "NA" \
                 else js["uploader"]
-            self.title = f'<a href={js["thumbnail"]}>{js["title"]}</a>'
+            self.title = js["title"]
+            self.thumbnail = js["thumbnail"]
             self.duration = ut.to_hhmmss(ut.int_or_none(js["duration"], 0))
             self.info_loaded.emit()
         except ut.CalledProcessFailed as e:
