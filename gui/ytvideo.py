@@ -159,6 +159,10 @@ class YoutubeVideo(QObject):
         debug = options.debug if options else None
         return ["-report"] if debug["ffmpeg"] else []
 
+    def _ffmpeg_xerror(self):
+        xerr = options.xerror if options else None
+        return ["-xerror"] if xerr else []
+
     def start_download(self, filename, start, end, format):
         opts = []
         opts += self._ffmpeg_use_gpu()
@@ -166,10 +170,11 @@ class YoutubeVideo(QObject):
         opts += self._ffmpeg_codecs()
         opts += self._ffmpeg_keep_vbr(format)
         opts += self._ffmpeg_debug()
+        opts += self._ffmpeg_xerror()
         self.p = QProcess()
         self.p.readyReadStandardError.connect(self.parse_progress)
         self.p.finished.connect(self.finish_download)
-        self.p.start(f"{ut.ffmpeg()}", opts + ["-xerror", "-y", f"{filename}"])
+        self.p.start(f"{ut.ffmpeg()}", opts + ["-y", f"{filename}"])
 
     @pyqtSlot()
     def parse_progress(self):
