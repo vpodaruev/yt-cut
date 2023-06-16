@@ -114,6 +114,7 @@ class Options(QWidget, ToolOptions):
             "Preserve original video bitrate when converting /\n"
             "Сохранить исходное качество видео при конвертировании")
         self.vbrCheckBox.toggled.connect(self.toggle_keep_vbr)
+        self.vbrCheckBox.setEnabled(False)
 
         codecLayout = QGridLayout()
         codecLayout.addWidget(self.premiereCheckBox, 0, 0, 1, 2)
@@ -190,6 +191,12 @@ class Options(QWidget, ToolOptions):
 
     @pyqtSlot(str)
     def set_video_codec(self, name):
+        if name != "copy":
+            self.vbrCheckBox.setEnabled(True)
+            self.vbrCheckBox.setCheckState(Qt.CheckState.Checked)
+        else:
+            self.vbrCheckBox.setCheckState(Qt.CheckState.Unchecked)
+            self.vbrCheckBox.setEnabled(False)
         self.codecs["video"] = name
         self.vcodecComboBox.setToolTip(video_codecs[name])
 
