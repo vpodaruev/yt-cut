@@ -8,7 +8,7 @@ from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import (
      QWidget, QLabel, QToolButton, QVBoxLayout, QHBoxLayout,
      QProgressBar, QSizePolicy, QMessageBox, QTabWidget,
-     QMainWindow)
+     QMainWindow, QPushButton)
 
 import gui.common as com
 import gui.saveas as svs
@@ -92,22 +92,31 @@ class MainWindow(QMainWindow):
         self.options = opt.Options()
         ytv.options = self.options    # access to other modules
 
-        self.downloadButton = DownloadButton()
-        self.downloadButton.clicked.connect(self.download)
-        self.downloadButton.setEnabled(False)
-        self.saveAs.changed.connect(self.downloadButton.setEnabled)
-
         self.progressBar = QProgressBar()
         self.progressBar.setMaximum(100)
         self.progressBar.setValue(0)
         self.duration_in_sec = 1
 
+        self.downloadButton = DownloadButton()
+        self.downloadButton.clicked.connect(self.download)
+        self.downloadButton.setEnabled(False)
+        self.saveAs.changed.connect(self.downloadButton.setEnabled)
+
+        showInFolderPushButton = QPushButton()
+        showInFolderPushButton.setIcon(QIcon("icons/showInFolder.png"))
+        showInFolderPushButton.clicked.connect(self.show_in_folder)
+        self.showInFolderPushButton = showInFolderPushButton
+
+        downloadHBoxLayout = QHBoxLayout()
+        downloadHBoxLayout.addWidget(self.downloadButton)
+        downloadHBoxLayout.addWidget(showInFolderPushButton)
+
         mainTabLayout = QVBoxLayout()
         mainTabLayout.addWidget(self.ytLink)
         mainTabLayout.addWidget(self.timeSpan)
         mainTabLayout.addWidget(self.saveAs)
-        mainTabLayout.addWidget(self.downloadButton)
         mainTabLayout.addWidget(self.progressBar)
+        mainTabLayout.addLayout(downloadHBoxLayout)
         mainTab = QWidget()
         mainTab.setLayout(mainTabLayout)
 
@@ -221,6 +230,9 @@ class MainWindow(QMainWindow):
         self.ytLink.setEnabled(True)
         self.timeSpan.setEnabled(True)
         self.saveAs.setEnabled(True)
+
+    def show_in_folder(self):
+        pass
 
     def dump(self):
         return {
