@@ -110,6 +110,7 @@ class MainWindow(QMainWindow):
         showInFolderPushButton.setCheckable(True)
         showInFolderPushButton.setChecked(False)
         showInFolderPushButton.setEnabled(False)
+        showInFolderPushButton.setToolTip("Show in folder / Показать в папке")
         self.saveAs.changed.connect(showInFolderPushButton.setEnabled)
         self.showInFolderPushButton = showInFolderPushButton
 
