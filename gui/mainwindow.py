@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
-from pathlib import Path
+import pathlib as pl
 from pathvalidate import sanitize_filename
+import platform
+import shutil
 
-from PyQt6.QtCore import pyqtSlot, Qt, QSize
-from PyQt6.QtGui import QIcon
+from PyQt6.QtCore import pyqtSlot, Qt, QSize, QUrl, QProcess
+from PyQt6.QtGui import QIcon, QDesktopServices
 from PyQt6.QtWidgets import (
      QWidget, QLabel, QToolButton, QVBoxLayout, QHBoxLayout,
      QProgressBar, QSizePolicy, QMessageBox, QTabWidget,
@@ -105,6 +107,10 @@ class MainWindow(QMainWindow):
         showInFolderPushButton = QPushButton()
         showInFolderPushButton.setIcon(QIcon("icons/showInFolder.png"))
         showInFolderPushButton.clicked.connect(self.show_in_folder)
+        showInFolderPushButton.setCheckable(True)
+        showInFolderPushButton.setChecked(False)
+        showInFolderPushButton.setEnabled(False)
+        self.saveAs.changed.connect(showInFolderPushButton.setEnabled)
         self.showInFolderPushButton = showInFolderPushButton
 
         downloadHBoxLayout = QHBoxLayout()
@@ -185,7 +191,7 @@ class MainWindow(QMainWindow):
             if not file.endswith(".mp4"):
                 file = file + ".mp4"
             try:
-                need_approve = Path(file).exists()
+                need_approve = pl.Path(file).exists()
             except OSError as e:
                 ut.logger().exception(f"{e}")
                 QMessageBox.critical(self.parent(), "Error", f"{e}")
@@ -230,9 +236,22 @@ class MainWindow(QMainWindow):
         self.ytLink.setEnabled(True)
         self.timeSpan.setEnabled(True)
         self.saveAs.setEnabled(True)
+        if self.showInFolderPushButton.isChecked():
+            self.show_in_folder()
 
     def show_in_folder(self):
-        pass
+        if not self.downloadButton.on:
+            return  # in progress, to be invoked later with download_finished()
+
+        self.showInFolderPushButton.setChecked(False)
+        file = pl.Path(self.saveAs.get_filename())
+        if platform.system() == "Windows" and file.exists():
+            ex = shutil.which("explorer.exe")
+            if ex is not None:
+                file = pl.WindowsPath(file).resolve()
+                QProcess.startDetached(f"{ex}", ["/select,", f"{file}"])
+        else:
+            QDesktopServices.openUrl(QUrl.fromLocalFile(f"{file.parent}"))
 
     def dump(self):
         return {
