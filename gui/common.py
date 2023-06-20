@@ -33,6 +33,15 @@ class GoButton(ToggleSwitch):
         super().__init__(views)
 
 
+class ShowInFolderButton(ToggleSwitch):
+    def __init__(self):
+        views = [(QIcon("icons/showInFolder.png"), "", "Show in folder / Показать в папке"),
+                 (QIcon("icons/wait.png"), "",
+                 "Show in folder when download is complete /\n"
+                 "Показать в папке по завершению загрузки")]
+        super().__init__(views)
+
+
 def getLineEditValue(lineEdit):
     text = lineEdit.text().strip()
     if not text:
