@@ -73,8 +73,7 @@ class TimeSpan(QWidget):
         self.toLineEdit.setReadOnly(False)
         self.clear_format()
         self.formatComboBox.setEnabled(True)
-        if not self.goButton.on:
-            self.goButton.toggle()
+        self.goButton.turn_on(True)
 
     def set_duration(self, duration, url_time=None):
         self.duration = duration

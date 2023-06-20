@@ -81,7 +81,7 @@ class MainWindow(QMainWindow):
 
         self.ytLink = ytl.YoutubeLink()
         self.ytLink.got_link.connect(self.got_yt_link)
-        self.ytLink.edit_link.connect(self.edit_yt_link)
+        self.ytLink.edit_link.connect(self.reset)
 
         self.timeSpan = tms.TimeSpan()
         self.timeSpan.got_interval.connect(self.got_interval)
@@ -105,7 +105,7 @@ class MainWindow(QMainWindow):
         self.saveAs.changed.connect(self.downloadButton.setEnabled)
 
         self.showInFolderPushButton = com.ShowInFolderButton()
-        self.showInFolderPushButton.toggle()
+        self.showInFolderPushButton.turn_on(False)
         self.showInFolderPushButton.clicked.connect(self.show_in_folder)
         self.showInFolderPushButton.setEnabled(False)
         self.saveAs.changed.connect(self.showInFolderPushButton.setEnabled)
@@ -146,6 +146,19 @@ class MainWindow(QMainWindow):
                             " Share the positive / Делись позитивом")
         self.setWindowIcon(QIcon("icons/ytcut.png"))
 
+    @pyqtSlot()
+    def reset(self):
+        self.progressBar.setValue(0)
+        self.downloadButton.turn_on(True)
+        self.showInFolderPushButton.turn_on(False)
+        self.saveAs.reset()
+        self.saveAs.setEnabled(False)
+        self.timeSpan.reset()
+        self.timeSpan.setEnabled(False)
+        self.ytLink.reset()
+        self.ytLink.setEnabled(True)
+        self.ytVideo = None
+
     @pyqtSlot(ytv.YoutubeVideo)
     def got_yt_link(self, video):
         self.ytVideo = video
@@ -154,15 +167,6 @@ class MainWindow(QMainWindow):
         self.timeSpan.set_format(video.get_formats())
         self.timeSpan.set_duration(video.duration, ut.get_url_time(video.url))
         self.timeSpan.setEnabled(True)
-
-    @pyqtSlot()
-    def edit_yt_link(self):
-        self.ytVideo = None
-        self.timeSpan.reset()
-        self.timeSpan.setEnabled(False)
-        self.saveAs.reset()
-        self.saveAs.setEnabled(False)
-        self.progressBar.setValue(0)
 
     @pyqtSlot(str, str)
     def got_interval(self, start, finish):

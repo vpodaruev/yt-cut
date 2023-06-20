@@ -59,6 +59,12 @@ class YoutubeLink(QWidget):
     def unlock(self):
         self.goButton.setEnabled(True)
 
+    def reset(self):
+        self.reset_title()
+        self.linkLineEdit.setReadOnly(False)
+        self.goButton.setEnabled(True)
+        self.goButton.turn_on(True)
+
     @pyqtSlot()
     def link_edited(self):
         if not self.goButton.on:
