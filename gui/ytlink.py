@@ -53,13 +53,19 @@ class YoutubeLink(QWidget):
             title = f'<a href="{kwargs["thumbnail"]}">{title}</a>'
         self.titleLabel.setText("<b>" + channel + "</b>: " + title)
 
+    def lock(self):
+        self.goButton.setEnabled(False)
+
+    def unlock(self):
+        self.goButton.setEnabled(True)
+
     @pyqtSlot()
     def link_edited(self):
         if not self.goButton.on:
             self.reset_title()
             self.goButton.toggle()
             self.linkLineEdit.selectAll()
-            self.linkLineEdit.setEnabled(True)
+            self.linkLineEdit.setReadOnly(False)
             self.linkLineEdit.setFocus(Qt.FocusReason.OtherFocusReason)
             self.edit_link.emit()
             return
@@ -75,18 +81,18 @@ class YoutubeLink(QWidget):
         self.video.info_loaded.connect(self.process_info)
         self.video.info_failed.connect(self.process_error)
         self.video.request_info()
-        self.setEnabled(False)
+        self.lock()
 
     @pyqtSlot(str)
     def process_error(self, msg):
         QMessageBox.critical(self.parent(), "Error", msg)
         self.linkLineEdit.clear()
-        self.setEnabled(True)
+        self.unlock()
 
     @pyqtSlot()
     def process_info(self):
-        self.setEnabled(True)
-        self.linkLineEdit.setEnabled(False)
+        self.unlock()
+        self.linkLineEdit.setReadOnly(True)
         self.goButton.toggle()
         v, self.video = self.video, None
         self.reset_title(channel=v.channel, title=v.title,

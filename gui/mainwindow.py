@@ -202,9 +202,9 @@ class MainWindow(QMainWindow):
                   is QMessageBox.StandardButton.No:
                     return
             s, f = self.timeSpan.get_interval()
-            self.ytLink.setEnabled(False)
-            self.timeSpan.setEnabled(False)
-            self.saveAs.setEnabled(False)
+            self.ytLink.lock()
+            self.timeSpan.lock()
+            self.saveAs.lock()
             self.downloadButton.toggle()
             self.duration_in_sec = ut.to_seconds(f) - ut.to_seconds(s)
             self.progressBar.reset()
@@ -230,9 +230,9 @@ class MainWindow(QMainWindow):
         elif errmsg:
             QMessageBox.critical(self.parent(), "Error", errmsg)
         self.downloadButton.toggle()
-        self.ytLink.setEnabled(True)
-        self.timeSpan.setEnabled(True)
-        self.saveAs.setEnabled(True)
+        self.ytLink.unlock()
+        self.timeSpan.unlock()
+        self.saveAs.unlock()
         if self.showInFolderPushButton.on:
             self.showInFolderPushButton.toggle()
             if ok:

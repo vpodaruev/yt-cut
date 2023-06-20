@@ -36,6 +36,14 @@ class SaveAsFile(QWidget):
         layout.addWidget(saveAsPushButton)
         self.setLayout(layout)
 
+    def lock(self):
+        self.saveAsLineEdit.setReadOnly(True)
+        self.saveAsPushButton.setEnabled(False)
+
+    def unlock(self):
+        self.saveAsPushButton.setEnabled(True)
+        self.saveAsLineEdit.setReadOnly(False)
+
     def filename_changed(self, file):
         self.saveAsLineEdit.setToolTip(file)
         self.changed.emit(bool(file))
