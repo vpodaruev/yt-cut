@@ -26,6 +26,7 @@ class SaveAsFile(QWidget):
 
         saveAsPushButton = QPushButton()
         saveAsPushButton.setIcon(QIcon("icons/saveAs.png"))
+        saveAsPushButton.setToolTip("Choose where to save / Выбрать, куда сохранить")
         saveAsPushButton.clicked.connect(self.browse)
         self.saveAsPushButton = saveAsPushButton
 
@@ -34,6 +35,14 @@ class SaveAsFile(QWidget):
         layout.addWidget(saveAsLineEdit)
         layout.addWidget(saveAsPushButton)
         self.setLayout(layout)
+
+    def lock(self):
+        self.saveAsLineEdit.setReadOnly(True)
+        self.saveAsPushButton.setEnabled(False)
+
+    def unlock(self):
+        self.saveAsPushButton.setEnabled(True)
+        self.saveAsLineEdit.setReadOnly(False)
 
     def filename_changed(self, file):
         self.saveAsLineEdit.setToolTip(file)

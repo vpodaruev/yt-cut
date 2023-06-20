@@ -12,7 +12,6 @@ from PyQt6.QtWidgets import (QApplication, QMessageBox)
 import gui.mainwindow as mw
 import utils as ut
 import version as vrs
-import gui.ytvideo as ytv
 
 
 def show_exception_box(log_msg):
@@ -34,8 +33,7 @@ def dump_state():
 
 
 def restore_on_error():
-    window.edit_yt_link()
-    window.ytLink.setEnabled(True)
+    window.reset()
 
 
 class UncaughtHook(QObject):
