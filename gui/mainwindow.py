@@ -104,19 +104,15 @@ class MainWindow(QMainWindow):
         self.downloadButton.setEnabled(False)
         self.saveAs.changed.connect(self.downloadButton.setEnabled)
 
-        showInFolderPushButton = QPushButton()
-        showInFolderPushButton.setIcon(QIcon("icons/showInFolder.png"))
-        showInFolderPushButton.clicked.connect(self.show_in_folder)
-        showInFolderPushButton.setCheckable(True)
-        showInFolderPushButton.setChecked(False)
-        showInFolderPushButton.setEnabled(False)
-        showInFolderPushButton.setToolTip("Show in folder / Показать в папке")
-        self.saveAs.changed.connect(showInFolderPushButton.setEnabled)
-        self.showInFolderPushButton = showInFolderPushButton
+        self.showInFolderPushButton = com.ShowInFolderButton()
+        self.showInFolderPushButton.toggle()
+        self.showInFolderPushButton.clicked.connect(self.show_in_folder)
+        self.showInFolderPushButton.setEnabled(False)
+        self.saveAs.changed.connect(self.showInFolderPushButton.setEnabled)
 
         downloadHBoxLayout = QHBoxLayout()
         downloadHBoxLayout.addWidget(self.downloadButton)
-        downloadHBoxLayout.addWidget(showInFolderPushButton)
+        downloadHBoxLayout.addWidget(self.showInFolderPushButton)
 
         mainTabLayout = QVBoxLayout()
         mainTabLayout.addWidget(self.ytLink)
@@ -237,14 +233,17 @@ class MainWindow(QMainWindow):
         self.ytLink.setEnabled(True)
         self.timeSpan.setEnabled(True)
         self.saveAs.setEnabled(True)
-        if self.showInFolderPushButton.isChecked():
-            self.show_in_folder()
+        if self.showInFolderPushButton.on:
+            self.showInFolderPushButton.toggle()
+            if ok:
+                self.show_in_folder()
 
     def show_in_folder(self):
         if not self.downloadButton.on:
+            self.showInFolderPushButton.toggle()
             return  # in progress, to be invoked later with download_finished()
 
-        self.showInFolderPushButton.setChecked(False)
+        self.showInFolderPushButton.turn_on(False)
         file = pl.Path(self.saveAs.get_filename())
         if platform.system() == "Windows" and file.exists():
             ex = shutil.which("explorer.exe")
@@ -252,7 +251,7 @@ class MainWindow(QMainWindow):
                 file = pl.WindowsPath(file).resolve()
                 QProcess.startDetached(f"{ex}", ["/select,", f"{file}"])
         else:
-            QDesktopServices.openUrl(QUrl.fromLocalFile(f"{file.parent}"))
+            QDesktopServices.openUrl(QUrl.fromLocalFile(f"{file.parent.resolve()}"))
 
     def dump(self):
         return {
