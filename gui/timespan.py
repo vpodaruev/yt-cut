@@ -56,19 +56,24 @@ class TimeSpan(QWidget):
         self.reset()
         self.setEnabled(False)
 
+    def lock(self):
+        self.goButton.setEnabled(False)
+
+    def unlock(self):
+        self.goButton.setEnabled(True)
+
     def reset(self):
         self.clear_interval()
         zero = ut.to_hhmmss(0)
         self.fromLineEdit.setPlaceholderText(zero)
         self.fromLineEdit.setToolTip(f"min {zero}")
-        self.fromLineEdit.setEnabled(True)
+        self.fromLineEdit.setReadOnly(False)
         self.toLineEdit.setPlaceholderText(zero)
         self.toLineEdit.setToolTip(f"max {zero}")
-        self.toLineEdit.setEnabled(True)
+        self.toLineEdit.setReadOnly(False)
         self.clear_format()
         self.formatComboBox.setEnabled(True)
-        if not self.goButton.on:
-            self.goButton.toggle()
+        self.goButton.turn_on(True)
 
     def set_duration(self, duration, url_time=None):
         self.duration = duration
@@ -129,13 +134,13 @@ class TimeSpan(QWidget):
 
         if self.goButton.on:
             self.formatComboBox.setEnabled(False)
-            self.fromLineEdit.setEnabled(False)
-            self.toLineEdit.setEnabled(False)
+            self.fromLineEdit.setReadOnly(True)
+            self.toLineEdit.setReadOnly(True)
             self.got_interval.emit(*self.get_interval())
         else:
             self.formatComboBox.setEnabled(True)
-            self.fromLineEdit.setEnabled(True)
-            self.toLineEdit.setEnabled(True)
+            self.fromLineEdit.setReadOnly(False)
+            self.toLineEdit.setReadOnly(False)
             self.edit_interval.emit()
         self.goButton.toggle()
 

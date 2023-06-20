@@ -49,6 +49,7 @@ class ToolOptions:
         self.keep_vbr = False
         self.debug = {"ffmpeg": False,
                       "logLevel": "critical"}
+        self.xerror = True
 
     def dump(self):
         return {
@@ -57,6 +58,7 @@ class ToolOptions:
             "codecs": self.codecs,
             "keep_vbr": self.keep_vbr,
             "debug": self.debug,
+            "xerror": self.xerror,
         }
 
 
@@ -114,6 +116,7 @@ class Options(QWidget, ToolOptions):
             "Preserve original video bitrate when converting /\n"
             "Сохранить исходное качество видео при конвертировании")
         self.vbrCheckBox.toggled.connect(self.toggle_keep_vbr)
+        self.vbrCheckBox.setEnabled(False)
 
         codecLayout = QGridLayout()
         codecLayout.addWidget(self.premiereCheckBox, 0, 0, 1, 2)
@@ -154,6 +157,11 @@ class Options(QWidget, ToolOptions):
         thirdPartyLayout.addWidget(self.updateYtDlpPushButton)
         thirdPartyGroup.setLayout(thirdPartyLayout)
 
+        self.xerrorCheckBox = QCheckBox("Stop on error")
+        self.xerrorCheckBox.setToolTip("Stop download on error /"
+                                       " Остановить загрузку при ошибке")
+        self.xerrorCheckBox.toggled.connect(self.toggle_xerror)
+
         self.resetPushButton = QPushButton("Reset")
         self.resetPushButton.setToolTip("Reset settings / Сбросить настройки")
         self.resetPushButton.clicked.connect(self.set_defaults)
@@ -165,6 +173,7 @@ class Options(QWidget, ToolOptions):
         layout.addWidget(debugGroup, 1, 0)
         layout.setRowStretch(2, 1)
         layout.addWidget(thirdPartyGroup, 0, 3)
+        layout.addWidget(self.xerrorCheckBox, 3, 0)
         layout.addWidget(self.resetPushButton, 3, 3)
         self.setLayout(layout)
 
@@ -179,6 +188,7 @@ class Options(QWidget, ToolOptions):
         self.vbrCheckBox.setChecked(self.keep_vbr)
         self.logCheckBox.setChecked(self.debug["ffmpeg"])
         self.logLevelComboBox.setCurrentText(self.debug["logLevel"])
+        self.xerrorCheckBox.setChecked(self.xerror)
 
     @pyqtSlot(str)
     def set_browser(self, name):
@@ -190,6 +200,12 @@ class Options(QWidget, ToolOptions):
 
     @pyqtSlot(str)
     def set_video_codec(self, name):
+        if name != "copy":
+            self.vbrCheckBox.setEnabled(True)
+            self.vbrCheckBox.setCheckState(Qt.CheckState.Checked)
+        else:
+            self.vbrCheckBox.setCheckState(Qt.CheckState.Unchecked)
+            self.vbrCheckBox.setEnabled(False)
         self.codecs["video"] = name
         self.vcodecComboBox.setToolTip(video_codecs[name])
 
@@ -214,6 +230,10 @@ class Options(QWidget, ToolOptions):
             ut.logger().setLevel(log_level[name])
         else:
             logging.disable(logging.CRITICAL)
+
+    @pyqtSlot(bool)
+    def toggle_xerror(self, ok):
+        self.xerror = ok
 
     def update_third_party(self):
         QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)

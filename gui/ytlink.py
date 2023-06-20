@@ -33,7 +33,8 @@ class YoutubeLink(QWidget):
         self.titleLabel = QLabel()
         self.titleLabel.setTextFormat(Qt.TextFormat.RichText)
         self.titleLabel.setTextInteractionFlags(
-                          Qt.TextInteractionFlag.TextSelectableByMouse)
+                          Qt.TextInteractionFlag.TextBrowserInteraction)
+        self.titleLabel.setOpenExternalLinks(True)
         self.reset_title()
 
         self.video = None
@@ -45,13 +46,24 @@ class YoutubeLink(QWidget):
         self.setLayout(layout)
 
     def reset_title(self, **kwargs):
-        channel = kwargs["channel"] if "channel" in kwargs \
-            else ytv.default_channel
-        title = kwargs["title"] if "title" in kwargs \
-            else ytv.default_title
-        self.titleLabel.setText("<b>" + channel + "</b>: " +
-                                title if channel else title)
+        channel = kwargs.get("channel", ytv.default_channel)
+        title = kwargs.get("title", ytv.default_title)
         self.titleLabel.setToolTip(title)
+        if "thumbnail" in kwargs:
+            title = f'<a href="{kwargs["thumbnail"]}">{title}</a>'
+        self.titleLabel.setText("<b>" + channel + "</b>: " + title)
+
+    def lock(self):
+        self.goButton.setEnabled(False)
+
+    def unlock(self):
+        self.goButton.setEnabled(True)
+
+    def reset(self):
+        self.reset_title()
+        self.linkLineEdit.setReadOnly(False)
+        self.goButton.setEnabled(True)
+        self.goButton.turn_on(True)
 
     @pyqtSlot()
     def link_edited(self):
@@ -59,7 +71,7 @@ class YoutubeLink(QWidget):
             self.reset_title()
             self.goButton.toggle()
             self.linkLineEdit.selectAll()
-            self.linkLineEdit.setEnabled(True)
+            self.linkLineEdit.setReadOnly(False)
             self.linkLineEdit.setFocus(Qt.FocusReason.OtherFocusReason)
             self.edit_link.emit()
             return
@@ -75,21 +87,22 @@ class YoutubeLink(QWidget):
         self.video.info_loaded.connect(self.process_info)
         self.video.info_failed.connect(self.process_error)
         self.video.request_info()
-        self.setEnabled(False)
+        self.lock()
 
     @pyqtSlot(str)
     def process_error(self, msg):
         QMessageBox.critical(self.parent(), "Error", msg)
         self.linkLineEdit.clear()
-        self.setEnabled(True)
+        self.unlock()
 
     @pyqtSlot()
     def process_info(self):
-        self.setEnabled(True)
-        self.linkLineEdit.setEnabled(False)
+        self.unlock()
+        self.linkLineEdit.setReadOnly(True)
         self.goButton.toggle()
         v, self.video = self.video, None
-        self.reset_title(channel=v.channel, title=v.title)
+        self.reset_title(channel=v.channel, title=v.title,
+                         thumbnail=v.thumbnail)
         try:
             v.request_formats()
             self.got_link.emit(v)

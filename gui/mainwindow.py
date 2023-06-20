@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 
-from pathlib import Path
+import pathlib as pl
 from pathvalidate import sanitize_filename
+import platform
+import shutil
 
-from PyQt6.QtCore import pyqtSlot, Qt, QSize
-from PyQt6.QtGui import QIcon
+from PyQt6.QtCore import pyqtSlot, Qt, QSize, QUrl, QProcess
+from PyQt6.QtGui import QIcon, QDesktopServices
 from PyQt6.QtWidgets import (
      QWidget, QLabel, QToolButton, QVBoxLayout, QHBoxLayout,
      QProgressBar, QSizePolicy, QMessageBox, QTabWidget,
-     QMainWindow)
+     QMainWindow, QPushButton)
 
 import gui.common as com
 import gui.saveas as svs
@@ -79,7 +81,7 @@ class MainWindow(QMainWindow):
 
         self.ytLink = ytl.YoutubeLink()
         self.ytLink.got_link.connect(self.got_yt_link)
-        self.ytLink.edit_link.connect(self.edit_yt_link)
+        self.ytLink.edit_link.connect(self.reset)
 
         self.timeSpan = tms.TimeSpan()
         self.timeSpan.got_interval.connect(self.got_interval)
@@ -92,22 +94,32 @@ class MainWindow(QMainWindow):
         self.options = opt.Options()
         ytv.options = self.options    # access to other modules
 
-        self.downloadButton = DownloadButton()
-        self.downloadButton.clicked.connect(self.download)
-        self.downloadButton.setEnabled(False)
-        self.saveAs.changed.connect(self.downloadButton.setEnabled)
-
         self.progressBar = QProgressBar()
         self.progressBar.setMaximum(100)
         self.progressBar.setValue(0)
         self.duration_in_sec = 1
 
+        self.downloadButton = DownloadButton()
+        self.downloadButton.clicked.connect(self.download)
+        self.downloadButton.setEnabled(False)
+        self.saveAs.changed.connect(self.downloadButton.setEnabled)
+
+        self.showInFolderPushButton = com.ShowInFolderButton()
+        self.showInFolderPushButton.turn_on(False)
+        self.showInFolderPushButton.clicked.connect(self.show_in_folder)
+        self.showInFolderPushButton.setEnabled(False)
+        self.saveAs.changed.connect(self.showInFolderPushButton.setEnabled)
+
+        downloadHBoxLayout = QHBoxLayout()
+        downloadHBoxLayout.addWidget(self.downloadButton)
+        downloadHBoxLayout.addWidget(self.showInFolderPushButton)
+
         mainTabLayout = QVBoxLayout()
         mainTabLayout.addWidget(self.ytLink)
         mainTabLayout.addWidget(self.timeSpan)
         mainTabLayout.addWidget(self.saveAs)
-        mainTabLayout.addWidget(self.downloadButton)
         mainTabLayout.addWidget(self.progressBar)
+        mainTabLayout.addLayout(downloadHBoxLayout)
         mainTab = QWidget()
         mainTab.setLayout(mainTabLayout)
 
@@ -134,6 +146,19 @@ class MainWindow(QMainWindow):
                             " Share the positive / Делись позитивом")
         self.setWindowIcon(com.icon("icons/ytcut.png"))
 
+    @pyqtSlot()
+    def reset(self):
+        self.progressBar.setValue(0)
+        self.downloadButton.turn_on(True)
+        self.showInFolderPushButton.turn_on(False)
+        self.saveAs.reset()
+        self.saveAs.setEnabled(False)
+        self.timeSpan.reset()
+        self.timeSpan.setEnabled(False)
+        self.ytLink.reset()
+        self.ytLink.setEnabled(True)
+        self.ytVideo = None
+
     @pyqtSlot(ytv.YoutubeVideo)
     def got_yt_link(self, video):
         self.ytVideo = video
@@ -142,15 +167,6 @@ class MainWindow(QMainWindow):
         self.timeSpan.set_format(video.get_formats())
         self.timeSpan.set_duration(video.duration, ut.get_url_time(video.url))
         self.timeSpan.setEnabled(True)
-
-    @pyqtSlot()
-    def edit_yt_link(self):
-        self.ytVideo = None
-        self.timeSpan.reset()
-        self.timeSpan.setEnabled(False)
-        self.saveAs.reset()
-        self.saveAs.setEnabled(False)
-        self.progressBar.setValue(0)
 
     @pyqtSlot(str, str)
     def got_interval(self, start, finish):
@@ -176,7 +192,7 @@ class MainWindow(QMainWindow):
             if not file.endswith(".mp4"):
                 file = file + ".mp4"
             try:
-                need_approve = Path(file).exists()
+                need_approve = pl.Path(file).exists()
             except OSError as e:
                 ut.logger().exception(f"{e}")
                 QMessageBox.critical(self.parent(), "Error", f"{e}")
@@ -190,9 +206,9 @@ class MainWindow(QMainWindow):
                   is QMessageBox.StandardButton.No:
                     return
             s, f = self.timeSpan.get_interval()
-            self.ytLink.setEnabled(False)
-            self.timeSpan.setEnabled(False)
-            self.saveAs.setEnabled(False)
+            self.ytLink.lock()
+            self.timeSpan.lock()
+            self.saveAs.lock()
             self.downloadButton.toggle()
             self.duration_in_sec = ut.to_seconds(f) - ut.to_seconds(s)
             self.progressBar.reset()
@@ -218,9 +234,28 @@ class MainWindow(QMainWindow):
         elif errmsg:
             QMessageBox.critical(self.parent(), "Error", errmsg)
         self.downloadButton.toggle()
-        self.ytLink.setEnabled(True)
-        self.timeSpan.setEnabled(True)
-        self.saveAs.setEnabled(True)
+        self.ytLink.unlock()
+        self.timeSpan.unlock()
+        self.saveAs.unlock()
+        if self.showInFolderPushButton.on:
+            self.showInFolderPushButton.toggle()
+            if ok:
+                self.show_in_folder()
+
+    def show_in_folder(self):
+        if not self.downloadButton.on:
+            self.showInFolderPushButton.toggle()
+            return  # in progress, to be invoked later with download_finished()
+
+        self.showInFolderPushButton.turn_on(False)
+        file = pl.Path(self.saveAs.get_filename())
+        if platform.system() == "Windows" and file.exists():
+            ex = shutil.which("explorer.exe")
+            if ex is not None:
+                file = pl.WindowsPath(file).resolve()
+                QProcess.startDetached(f"{ex}", ["/select,", f"{file}"])
+        else:
+            QDesktopServices.openUrl(QUrl.fromLocalFile(f"{file.parent.resolve()}"))
 
     def dump(self):
         return {

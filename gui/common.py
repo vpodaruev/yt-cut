@@ -35,8 +35,17 @@ class ToggleSwitch(QPushButton):
 
 class GoButton(ToggleSwitch):
     def __init__(self):
-        views = [(icon("icons/go-prev.png"), "", "Edit / Редактировать"),
+        views = [(icon("icons/edit.png"), "", "Edit / Редактировать"),
                  (icon("icons/go-next.png"), "", "Go! / Поехали дальше!")]
+        super().__init__(views)
+
+
+class ShowInFolderButton(ToggleSwitch):
+    def __init__(self):
+        views = [(QIcon("icons/showInFolder.png"), "", "Show in folder / Показать в папке"),
+                 (QIcon("icons/wait.png"), "",
+                 "Show in folder when download is complete /\n"
+                 "Показать в папке по завершению загрузки")]
         super().__init__(views)
 
 

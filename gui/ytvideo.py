@@ -28,6 +28,7 @@ class YoutubeVideo(QObject):
         self.url = url
         self.title = default_title
         self.channel = default_channel
+        self.thumbnail = None
         self.duration = "0"
         self.formats = None
         self.p = None
@@ -48,6 +49,7 @@ class YoutubeVideo(QObject):
                      opts + ["--print", '{ "channel": %(channel)j'
                                         ', "uploader": %(uploader)j'
                                         ', "title": %(title)j'
+                                        ', "thumbnail": %(thumbnail)j'
                                         ', "duration": %(duration)j }',
                              f"{self.url}"])
         QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
@@ -60,6 +62,7 @@ class YoutubeVideo(QObject):
             self.channel = js["channel"] if js["channel"] != "NA" \
                 else js["uploader"]
             self.title = js["title"]
+            self.thumbnail = js["thumbnail"]
             self.duration = ut.to_hhmmss(ut.int_or_none(js["duration"], 0))
             self.info_loaded.emit()
         except ut.CalledProcessFailed as e:
@@ -156,6 +159,10 @@ class YoutubeVideo(QObject):
         debug = options.debug if options else None
         return ["-report"] if debug["ffmpeg"] else []
 
+    def _ffmpeg_xerror(self):
+        xerr = options.xerror if options else None
+        return ["-xerror"] if xerr else []
+
     def start_download(self, filename, start, end, format):
         opts = []
         opts += self._ffmpeg_use_gpu()
@@ -163,10 +170,11 @@ class YoutubeVideo(QObject):
         opts += self._ffmpeg_codecs()
         opts += self._ffmpeg_keep_vbr(format)
         opts += self._ffmpeg_debug()
+        opts += self._ffmpeg_xerror()
         self.p = QProcess()
         self.p.readyReadStandardError.connect(self.parse_progress)
         self.p.finished.connect(self.finish_download)
-        self.p.start(f"{ut.ffmpeg()}", opts + ["-xerror", "-y", f"{filename}"])
+        self.p.start(f"{ut.ffmpeg()}", opts + ["-y", f"{filename}"])
 
     @pyqtSlot()
     def parse_progress(self):
