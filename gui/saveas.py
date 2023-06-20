@@ -26,6 +26,7 @@ class SaveAsFile(QWidget):
 
         saveAsPushButton = QPushButton()
         saveAsPushButton.setIcon(QIcon("icons/saveAs.png"))
+        saveAsPushButton.setToolTip("Choose where to save / Выбрать, куда сохранить")
         saveAsPushButton.clicked.connect(self.browse)
         self.saveAsPushButton = saveAsPushButton
 
