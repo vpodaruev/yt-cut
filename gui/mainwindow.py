@@ -55,7 +55,7 @@ international project
     def __init__(self, size):
         super().__init__()
         size = QSize(size, size)
-        self.setIcon(QIcon("icons/cs-logo.png"))
+        self.setIcon(com.icon("icons/cs-logo.png"))
         self.setFixedSize(size)
         self.setIconSize(0.95*size)
         self.setAutoRaise(True)
@@ -68,8 +68,8 @@ international project
 
 class DownloadButton(com.ToggleSwitch):
     def __init__(self):
-        views = [(QIcon("icons/cancel.png"),   "Cancel / Отменить",    ""),
-                 (QIcon("icons/download.png"), "Download / Загрузить", "")]
+        views = [(com.icon("icons/cancel.png"),   "Cancel / Отменить",    ""),
+                 (com.icon("icons/download.png"), "Download / Загрузить", "")]
         super().__init__(views)
         self.setSizePolicy(QSizePolicy.Policy.Expanding,
                            QSizePolicy.Policy.Fixed)
@@ -144,7 +144,7 @@ class MainWindow(QMainWindow):
         self.setFixedHeight(self.sizeHint().height())
         self.setWindowTitle(f"YtCut {vrs.get_version()}"
                             " Share the positive / Делись позитивом")
-        self.setWindowIcon(QIcon("icons/ytcut.png"))
+        self.setWindowIcon(com.icon("icons/ytcut.png"))
 
     @pyqtSlot()
     def reset(self):
