@@ -2,6 +2,7 @@
 
 import json
 import re
+import pathlib
 
 from PyQt6.QtCore import (pyqtSignal, pyqtSlot, Qt, QObject, QProcess)
 from PyQt6.QtGui import QGuiApplication
@@ -19,7 +20,7 @@ default_format = "best available format / наилучший доступный 
 
 class YoutubeVideo(QObject):
     info_loaded = pyqtSignal()
-    progress = pyqtSignal(float)
+    progress = pyqtSignal(float, str)
     finished = pyqtSignal(bool, str)
     info_failed = pyqtSignal(str)
 
@@ -32,6 +33,7 @@ class YoutubeVideo(QObject):
         self.duration = "0"
         self.formats = None
         self.p = None
+        self.progress_re = re.compile(r"\[download\]\s+(\d{1,3}.\d)[%]")
         self.time_re = re.compile(r"time=((\d\d[:]){2}\d\d[.]\d\d)")
         self.err_re = re.compile(r"[Ee]rror")
         self.debug = False
@@ -83,7 +85,7 @@ class YoutubeVideo(QObject):
         self.p = QProcess()
         opts = self._ytdl_cookies()
         opts += self._prefer_avc()
-        opts += ["-f", filter] if filter else []
+        opts += ["--format", filter] if filter else []
         self.p.start(f"{ut.yt_dlp()}",
                      opts + ["--no-playlist", "--print",
                              '{ "format_id": %(format_id)j'
@@ -164,7 +166,10 @@ class YoutubeVideo(QObject):
         xerr = options.xerror if options else None
         return ["-xerror"] if xerr else []
 
-    def start_download(self, filename, start, end, format):
+    def _is_full_video(self, start, end):
+        return ut.to_seconds(start) == 0 and end == self.duration
+
+    def _by_ffmpeg(self, filename, start, end, format):
         opts = []
         opts += self._ffmpeg_use_gpu()
         opts += self._ffmpeg_source(start, end, format)
@@ -172,18 +177,39 @@ class YoutubeVideo(QObject):
         opts += self._ffmpeg_keep_vbr(format)
         opts += self._ffmpeg_debug()
         opts += self._ffmpeg_xerror()
+        return f"{ut.ffmpeg()}", opts + ["-y", f"{filename}"]
+
+    def _by_yt_dlp(self, filename, start, end, format):
+        file = pathlib.Path(filename)
+        path, filename = file.parent, file.stem
+        opts = self._ytdl_cookies()
+        opts += ["--no-playlist",
+                 "--force-overwrites",
+                 "--embed-thumbnail",
+                 "--format", self.formats[format]["format_id"],
+                 "--paths", f"{path}",
+                 "--output", f"{filename}"]
+        return f"{ut.yt_dlp()}", opts + [f"{self.url}"]
+
+    def start_download(self, filename, start, end, format):
+        cmd, opts = self._by_yt_dlp(filename, start, end, format) \
+                    if self._is_full_video(start, end) else \
+                    self._by_ffmpeg(filename, start, end, format)
         self.p = QProcess()
-        self.p.readyReadStandardError.connect(self.parse_progress)
+        self.p.readyRead.connect(self.parse_progress)
         self.p.finished.connect(self.finish_download)
-        self.p.start(f"{ut.ffmpeg()}", opts + ["-y", f"{filename}"])
+        self.p.start(cmd, opts)
 
     @pyqtSlot()
     def parse_progress(self):
-        result = ut.decode(self.p.readAllStandardError())
+        result = ut.decode(self.p.readAll())
         ut.logger().debug(result)
-        if m := re.search(self.time_re, result):
+        if m := re.search(self.progress_re, result):
+            val = float(m.group(1))
+            self.progress.emit(val, "%")
+        elif m := re.search(self.time_re, result):
             time = m.group(1)
-            self.progress.emit(ut.from_ffmpeg_time(time))
+            self.progress.emit(ut.from_ffmpeg_time(time), "s")
         elif m := re.search(self.err_re, result):
             self.error = result
 
