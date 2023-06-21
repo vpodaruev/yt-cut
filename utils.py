@@ -4,10 +4,11 @@ import logging
 import math
 import re
 import pathlib
+import shutil
 import sys
 from urllib.parse import urlparse, parse_qs
 
-from PyQt6.QtCore import QProcess
+from PyQt6.QtCore import QProcess, QCoreApplication
 
 
 package_dir = pathlib.Path(sys.argv[0]).parent
@@ -22,14 +23,29 @@ def logger():
     return logging.getLogger("yt-cut")
 
 
+def as_command(s):
+    """Return command `s` as pathlib.Path object
+       if available from the command line"""
+    cmd = pathlib.Path(s)
+    if shutil.which(s) is not None:
+        return cmd
+
+    app_dir = QCoreApplication.applicationDirPath()
+    cmd = pathlib.Path(app_dir)/cmd
+    if shutil.which(f"{cmd}") is not None:
+        return cmd
+
+    raise RuntimeError(f"command not available ({s})")
+
+
 def yt_dlp():
     """Return path to `yt-dlp` executable"""
-    return args.youtube_dl
+    return as_command(args.youtube_dl)
 
 
 def ffmpeg():
     """Return path to `ffmpeg` executable"""
-    return args.ffmpeg
+    return as_command(args.ffmpeg)
 
 
 def to_hhmmss(seconds, delim=":"):
