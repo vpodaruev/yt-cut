@@ -71,16 +71,20 @@ class UncaughtHook(QObject):
             restore_on_error()
 
 
+def under_windows():
+    return platform.platform().startswith("Windows")
+
+
 if __name__ == "__main__":
-    yt_dlp_default = "tools/yt-dlp.exe" if platform.platform() == "Windows" else "yt-dlp"
-    ffmpeg_default = "tools/ffmpeg.exe" if platform.platform() == "Windows" else "ffmpeg"
+    yt_dlp_default = "tools/yt-dlp.exe" if under_windows() else "yt-dlp"
+    ffmpeg_default = "tools/ffmpeg.exe" if under_windows() else "ffmpeg"
 
     parser = ArgumentParser(description="Download parts of videos"
                             " from various social nets such as Youtube,"
                             " FaceBook, Instagram, TikTok, VK, etc.")
-    parser.add_argument("--youtube-dl", type=Path, default=yt_dlp_default,
+    parser.add_argument("--youtube-dl", default=yt_dlp_default,
                         help="path to yt-dlp program [default: %(default)s]")
-    parser.add_argument("--ffmpeg", type=Path, default=ffmpeg_default,
+    parser.add_argument("--ffmpeg", default=ffmpeg_default,
                         help="path to ffmpeg program [default: %(default)s]")
 
     app = QApplication(sys.argv)

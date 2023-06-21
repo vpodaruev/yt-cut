@@ -23,6 +23,10 @@ def logger():
     return logging.getLogger("yt-cut")
 
 
+def application_path():
+    return pathlib.Path(sys.argv[0]).parent
+
+
 def as_command(s):
     """Return command `s` as pathlib.Path object
        if available from the command line"""
@@ -30,8 +34,7 @@ def as_command(s):
     if shutil.which(s) is not None:
         return cmd
 
-    app_dir = QCoreApplication.applicationDirPath()
-    cmd = pathlib.Path(app_dir)/cmd
+    cmd = application_path()/cmd
     if shutil.which(f"{cmd}") is not None:
         return cmd
 
