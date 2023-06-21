@@ -46,11 +46,12 @@ class YoutubeVideo(QObject):
         self.p.finished.connect(self.process_info)
         opts = self._ytdl_cookies()
         self.p.start(f"{ut.yt_dlp()}",
-                     opts + ["--print", '{ "channel": %(channel)j'
-                                        ', "uploader": %(uploader)j'
-                                        ', "title": %(title)j'
-                                        ', "thumbnail": %(thumbnail)j'
-                                        ', "duration": %(duration)j }',
+                     opts + ["--no-playlist", "--print",
+                             '{ "channel": %(channel)j'
+                             ', "uploader": %(uploader)j'
+                             ', "title": %(title)j'
+                             ', "thumbnail": %(thumbnail)j'
+                             ', "duration": %(duration)j }',
                              f"{self.url}"])
         QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
 
@@ -84,7 +85,7 @@ class YoutubeVideo(QObject):
         opts += self._prefer_avc()
         opts += ["-f", filter] if filter else []
         self.p.start(f"{ut.yt_dlp()}",
-                     opts + ["--print",
+                     opts + ["--no-playlist", "--print",
                              '{ "format_id": %(format_id)j'
                              ', "ext": %(ext)j'
                              ', "resolution": %(resolution)j'
