@@ -190,6 +190,7 @@ class YoutubeVideo(QObject):
                  "--force-overwrites",
                  "--embed-thumbnail",
                  "--format", self.formats[format]["format_id"],
+                 "--remux-video", "mp4",
                  "--paths", f"{path}",
                  "--output", f"{filename}"]
         return f"{ut.yt_dlp()}", opts + [f"{self.url}"]
