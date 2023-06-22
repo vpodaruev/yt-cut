@@ -196,6 +196,8 @@ class YoutubeVideo(QObject):
                     if self._is_full_video(start, end) else \
                     self._by_ffmpeg(filename, start, end, format)
         self.p = QProcess()
+        mode = QProcess.ProcessChannelMode
+        self.p.setProcessChannelMode(mode.MergedChannels)
         self.p.readyRead.connect(self.parse_progress)
         self.p.finished.connect(self.finish_download)
         self.p.start(cmd, opts)
