@@ -3,6 +3,7 @@ dist/
 env/
 .ipynb*/
 __pycache__/
+tools/
 *.exe
 *.mp4
 *.spec

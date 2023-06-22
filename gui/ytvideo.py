@@ -76,7 +76,7 @@ class YoutubeVideo(QObject):
 
     def _prefer_avc(self):
         if options and options.prefer_avc:
-            return ["-S", "vcodec:h264,acodec:mp3,quality"]
+            return ["-S", "quality,vcodec:h264,acodec:mp3"]
         return []
 
     def request_formats(self, filter="all[vcodec!=none]+ba"
