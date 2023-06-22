@@ -119,7 +119,10 @@ class YoutubeVideo(QObject):
 
     def get_suffix(self, start, finish, format):
         res = ut.format_resolution(self.formats[format])
-        return f"_{res}" + ut.as_suffix(start, finish)
+        if self._is_full_video(start, finish):
+            return f"_{res}"
+        tm_code = ut.as_suffix(start, finish)
+        return f"_{res}_{tm_code}"
 
     def get_extension(self, format):
         return ut.str_or_none(self.formats[format]["ext"], "mp4")

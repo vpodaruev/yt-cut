@@ -74,7 +74,7 @@ def from_ffmpeg_time(hhmmss):
 
 def as_suffix(start, finish):
     start, finish = start.replace(":", "."), finish.replace(":", ".")
-    return f"_{start}-{finish}"
+    return f"{start}-{finish}"
 
 
 def decode(msg):

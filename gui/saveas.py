@@ -18,8 +18,8 @@ class SaveAsFile(QWidget):
 
         saveAsLabel = QLabel("Save as:")
         saveAsLineEdit = QLineEdit()
-        saveAsLineEdit.setPlaceholderText("file where to save"
-                                          " / файл, куда сохранить")
+        saveAsLineEdit.setPlaceholderText("File where to save / "
+                                          "Файл, куда сохранить")
         saveAsLineEdit.textChanged.connect(self.filename_changed)
         self.saveAsLineEdit = saveAsLineEdit
 
@@ -27,7 +27,8 @@ class SaveAsFile(QWidget):
 
         saveAsPushButton = QPushButton()
         saveAsPushButton.setIcon(com.icon("icons/saveAs.png"))
-        saveAsPushButton.setToolTip("Choose where to save / Выбрать, куда сохранить")
+        saveAsPushButton.setToolTip("Choose where to save / "
+                                    "Выбрать, куда сохранить")
         saveAsPushButton.clicked.connect(self.browse)
         self.saveAsPushButton = saveAsPushButton
 
