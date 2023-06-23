@@ -27,11 +27,13 @@ class TimeSpan(QWidget):
         self.formatComboBox = formatComboBox
 
         fromLabel = QLabel("Cut from:")
+        fromLabel.setToolTip("Вырезать от")
         fromLineEdit = QLineEdit()
         fromLineEdit.setValidator(timingValidator)
         self.fromLineEdit = fromLineEdit
 
         toLabel = QLabel("to:")
+        toLabel.setToolTip("до")
         toLineEdit = QLineEdit()
         toLineEdit.setValidator(timingValidator)
         self.toLineEdit = toLineEdit
@@ -90,6 +92,7 @@ class TimeSpan(QWidget):
         self.formatComboBox.clear()
         for f in formats:
             self.formatComboBox.addItem(f)
+        self.formatComboBox.setToolTip(self.get_format())
 
     def clear_format(self):
         self.set_format([ytv.default_format])
