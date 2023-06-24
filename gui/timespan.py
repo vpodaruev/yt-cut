@@ -3,7 +3,7 @@
 from PyQt6.QtCore import (pyqtSignal, pyqtSlot, QRegularExpression)
 from PyQt6.QtGui import QRegularExpressionValidator
 from PyQt6.QtWidgets import (
-    QWidget, QLabel, QLineEdit,
+    QWidget, QLabel, QLineEdit, QPushButton,
     QComboBox, QMessageBox, QHBoxLayout, QVBoxLayout)
 
 import gui.common as com
@@ -32,6 +32,13 @@ class TimeSpan(QWidget):
         fromLineEdit.setValidator(timingValidator)
         self.fromLineEdit = fromLineEdit
 
+        moveTimePushButton = QPushButton(icon=com.icon("icons/to.png"))
+        moveTimePushButton.setToolTip("Copy time to the right / "
+                                      "Скопировать время вправо")
+        moveTimePushButton.setFlat(True)
+        moveTimePushButton.clicked.connect(self.move_time)
+        self.moveTimePushButton = moveTimePushButton
+
         toLabel = QLabel("to:")
         toLabel.setToolTip("до")
         toLineEdit = QLineEdit()
@@ -45,6 +52,8 @@ class TimeSpan(QWidget):
         hLayout = QHBoxLayout()
         hLayout.addWidget(fromLabel)
         hLayout.addWidget(fromLineEdit)
+        hLayout.addSpacing(5)
+        hLayout.addWidget(moveTimePushButton)
         hLayout.addSpacing(5)
         hLayout.addWidget(toLabel)
         hLayout.addWidget(toLineEdit)
@@ -73,6 +82,7 @@ class TimeSpan(QWidget):
         self.toLineEdit.setPlaceholderText(zero)
         self.toLineEdit.setToolTip(f"max {zero}")
         self.toLineEdit.setReadOnly(False)
+        self.moveTimePushButton.setEnabled(True)
         self.clear_format()
         self.formatComboBox.setEnabled(True)
         self.goButton.turn_on(True)
@@ -109,6 +119,14 @@ class TimeSpan(QWidget):
         self.fromLineEdit.setText("")
         self.toLineEdit.setText("")
 
+    def move_time(self):
+        s = self.fromLineEdit.text()
+        si = ut.to_seconds(s)
+        if si > 0:
+            s = ut.to_hhmmss(si)          # beautify
+            self.fromLineEdit.setText(s)
+            self.toLineEdit.setText(s)
+
     def check_and_beautify(self):
         s, f = (com.getLineEditValue(self.fromLineEdit),
                 com.getLineEditValue(self.toLineEdit))
@@ -117,12 +135,12 @@ class TimeSpan(QWidget):
         if fi <= si:
             s, f = ut.to_hhmmss(si), ut.to_hhmmss(fi)
             raise ValueError(
-                f"{s}-{f}\nStart value must be less than end value!"
+                f"{s} - {f}\nStart value must be less than end value!"
                 " / Начальное значение должно быть меньше конечного!")
         elif ut.to_seconds(self.duration) < fi:
             f = ut.to_hhmmss(fi)
             raise ValueError(
-                f"{f}<{self.duration}\nEnd value must not exceed duration!"
+                f"{f} < {self.duration}\nEnd value must not exceed duration!"
                 " / Конечное значение не должно превышать продолжительность!")
         self.set_interval(si, fi)
 
@@ -137,11 +155,13 @@ class TimeSpan(QWidget):
 
         if self.goButton.on:
             self.formatComboBox.setEnabled(False)
+            self.moveTimePushButton.setEnabled(False)
             self.fromLineEdit.setReadOnly(True)
             self.toLineEdit.setReadOnly(True)
             self.got_interval.emit(*self.get_interval())
         else:
             self.formatComboBox.setEnabled(True)
+            self.moveTimePushButton.setEnabled(True)
             self.fromLineEdit.setReadOnly(False)
             self.toLineEdit.setReadOnly(False)
             self.edit_interval.emit()
