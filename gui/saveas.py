@@ -17,6 +17,7 @@ class SaveAsFile(QWidget):
         super().__init__(*args, **kwargs)
 
         saveAsLabel = QLabel("Save as:")
+        saveAsLabel.setToolTip("Сохранить как")
         saveAsLineEdit = QLineEdit()
         saveAsLineEdit.setPlaceholderText("File where to save / "
                                           "Файл, куда сохранить")
