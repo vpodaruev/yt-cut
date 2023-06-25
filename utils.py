@@ -129,6 +129,7 @@ def check_output(process):
         if err:
             logger().warning(err)
         out = decode(process.readAllStandardOutput())
+        out = re.sub(r' NA,', ' "NA",', out)  # NOTE: seems this is due to YT-DLP bug in JSON
         logger().debug(out)
         return out
     raise CalledProcessFailed(process, err)
