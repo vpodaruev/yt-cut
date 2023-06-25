@@ -8,7 +8,7 @@ import shutil
 import sys
 from urllib.parse import urlparse, parse_qs
 
-from PyQt6.QtCore import QProcess, QCoreApplication
+from PyQt6.QtCore import QProcess
 
 
 package_dir = pathlib.Path(sys.argv[0]).parent

@@ -6,11 +6,11 @@ import platform
 import shutil
 
 from PyQt6.QtCore import pyqtSlot, Qt, QSize, QUrl, QProcess
-from PyQt6.QtGui import QIcon, QDesktopServices
+from PyQt6.QtGui import QDesktopServices
 from PyQt6.QtWidgets import (
      QWidget, QLabel, QToolButton, QVBoxLayout, QHBoxLayout,
      QProgressBar, QSizePolicy, QMessageBox, QTabWidget,
-     QMainWindow, QPushButton)
+     QMainWindow)
 
 import gui.common as com
 import gui.saveas as svs

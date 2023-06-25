@@ -2,7 +2,6 @@
 
 from argparse import ArgumentParser
 import json
-from pathlib import Path
 import sys
 import traceback
 
