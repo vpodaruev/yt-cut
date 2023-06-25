@@ -222,9 +222,15 @@ class MainWindow(QMainWindow):
         else:
             self.ytVideo.cancel_download()
 
-    @pyqtSlot(float)
-    def update_progress(self, val):
-        percent = int(val / self.duration_in_sec * 100)
+    @pyqtSlot(float, str)
+    def update_progress(self, val, unit):
+        percent = 0
+        if unit == "%":
+            percent = int(val)
+        elif unit == "s":
+            percent = int(val / self.duration_in_sec * 100)
+        else:
+            ut.logger().warning(f"unknown progress unit ({unit})")
         self.progressBar.setValue(percent)
 
     @pyqtSlot(bool, str)

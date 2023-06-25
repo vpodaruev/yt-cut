@@ -38,7 +38,7 @@ def as_command(s):
     if shutil.which(f"{cmd}") is not None:
         return cmd
 
-    raise RuntimeError(f"command not available ({s})")
+    raise RuntimeError(f"command not found ({s})")
 
 
 def yt_dlp():
@@ -74,7 +74,7 @@ def from_ffmpeg_time(hhmmss):
 
 def as_suffix(start, finish):
     start, finish = start.replace(":", "."), finish.replace(":", ".")
-    return f"_{start}-{finish}"
+    return f"{start}-{finish}"
 
 
 def decode(msg):
