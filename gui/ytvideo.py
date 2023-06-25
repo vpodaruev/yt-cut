@@ -186,9 +186,13 @@ class YoutubeVideo(QObject):
         file = pathlib.Path(filename)
         path, filename = file.parent, file.stem
         opts = self._ytdl_cookies()
+        try:
+            opts += ["--ffmpeg-location", f"{ut.ffmpeg()}",
+                     "--embed-thumbnail"]
+        except RuntimeError:
+            pass
         opts += ["--no-playlist",
                  "--force-overwrites",
-                 "--embed-thumbnail",
                  "--format", self.formats[format]["format_id"],
                  "--remux-video", "mp4",
                  "--paths", f"{path}",
