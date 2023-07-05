@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+import re
 
 from PyQt6.QtCore import (pyqtSlot, Qt, QProcess)
 from PyQt6.QtGui import QGuiApplication
@@ -46,7 +47,7 @@ class ToolOptions:
         self.prefer_avc = True
         self.codecs = {"video": "copy",
                        "audio": "copy"}
-        self.keep_vbr = False
+        self.vbr = VideoBitrate.default_value
         self.debug = {"ffmpeg": False,
                       "logLevel": "critical"}
         self.xerror = True
@@ -56,10 +57,33 @@ class ToolOptions:
             "browser": self.browser,
             "prefer_avc": self.prefer_avc,
             "codecs": self.codecs,
-            "keep_vbr": self.keep_vbr,
+            "vbr": self.vbr,
             "debug": self.debug,
             "xerror": self.xerror,
         }
+
+
+class VideoBitrate(QComboBox):
+    """Tuned `QComboBox` class to get video bitrate from user"""
+    default_value = "original"
+    vbr_pat = re.compile(r"(^\s*\d+[KkMm]?$)|(auto)|(original)")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.addItems(["auto", "original"])
+        self.setCurrentText(self.default_value)
+        self.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
+        self.setEditable(True)
+
+    def reset(self):
+        self.setCurrentText(self.default_value)
+
+    def focusOutEvent(self, e):
+        val = self.currentText()
+        if self.vbr_pat.match(val) is None:
+            self.reset()
+        super().focusOutEvent(e)
 
 
 class Options(QWidget, ToolOptions):
@@ -111,12 +135,12 @@ class Options(QWidget, ToolOptions):
         self.acodecComboBox.setToolTip(audio_codecs[self.codecs["audio"]])
         self.acodecComboBox.currentTextChanged.connect(self.set_audio_codec)
 
-        self.vbrCheckBox = QCheckBox("Keep original VBR")
-        self.vbrCheckBox.setToolTip(
-            "Preserve original video bitrate when converting /\n"
-            "Сохранить исходное качество видео при конвертировании")
-        self.vbrCheckBox.toggled.connect(self.toggle_keep_vbr)
-        self.vbrCheckBox.setEnabled(False)
+        vbrLabel = QLabel("VBR:")
+        vbrLabel.setToolTip("Set video bitrate when converting /\n"
+                            "Установить качество видео при конвертировании")
+        self.vbrComboBox = VideoBitrate()
+        self.vbrComboBox.currentTextChanged.connect(self.set_video_bitrate)
+        self.vbrComboBox.setEnabled(False)
 
         codecLayout = QGridLayout()
         codecLayout.addWidget(self.premiereCheckBox, 0, 0, 1, 2)
@@ -124,7 +148,9 @@ class Options(QWidget, ToolOptions):
         codecLayout.addWidget(self.vcodecComboBox, 1, 1)
         codecLayout.addWidget(acodecLabel, 2, 0)
         codecLayout.addWidget(self.acodecComboBox, 2, 1)
-        codecLayout.addWidget(self.vbrCheckBox, 3, 0, 1, 2)
+        codecLayout.addWidget(vbrLabel, 3, 0,
+                              alignment=Qt.AlignmentFlag.AlignRight)
+        codecLayout.addWidget(self.vbrComboBox, 3, 1)
         codecGroup.setLayout(codecLayout)
 
         debugGroup = QGroupBox("Debug")
@@ -185,7 +211,7 @@ class Options(QWidget, ToolOptions):
         self.premiereCheckBox.setChecked(self.prefer_avc)
         self.vcodecComboBox.setCurrentText(self.codecs["video"])
         self.acodecComboBox.setCurrentText(self.codecs["audio"])
-        self.vbrCheckBox.setChecked(self.keep_vbr)
+        self.vbrComboBox.setCurrentText(self.vbr)
         self.logCheckBox.setChecked(self.debug["ffmpeg"])
         self.logLevelComboBox.setCurrentText(self.debug["logLevel"])
         self.xerrorCheckBox.setChecked(self.xerror)
@@ -201,22 +227,21 @@ class Options(QWidget, ToolOptions):
     @pyqtSlot(str)
     def set_video_codec(self, name):
         if name != "copy":
-            self.vbrCheckBox.setEnabled(True)
-            self.vbrCheckBox.setCheckState(Qt.CheckState.Checked)
+            self.vbrComboBox.setEnabled(True)
         else:
-            self.vbrCheckBox.setCheckState(Qt.CheckState.Unchecked)
-            self.vbrCheckBox.setEnabled(False)
+            self.vbrComboBox.reset()
+            self.vbrComboBox.setEnabled(False)
         self.codecs["video"] = name
         self.vcodecComboBox.setToolTip(video_codecs[name])
+
+    @pyqtSlot(str)
+    def set_video_bitrate(self, val):
+        self.vbr = val
 
     @pyqtSlot(str)
     def set_audio_codec(self, name):
         self.codecs["audio"] = name
         self.acodecComboBox.setToolTip(audio_codecs[name])
-
-    @pyqtSlot(bool)
-    def toggle_keep_vbr(self, ok):
-        self.keep_vbr = ok
 
     @pyqtSlot(bool)
     def toggle_logging(self, ok):
