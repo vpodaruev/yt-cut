@@ -156,10 +156,14 @@ class YoutubeVideo(QObject):
         return ["-c:v", codecs["video"],
                 "-c:a", codecs["audio"]] if codecs else []
 
-    def _ffmpeg_keep_vbr(self, format):
-        keep_vbr = options.keep_vbr if options else None
-        vbr = ut.float_or_none(self.formats[format]["vbr"])
-        return ["-b:v", f"{vbr}K"] if vbr and keep_vbr else []
+    def _ffmpeg_set_vbr(self, format):
+        vbr = options.vbr if options else None
+        if vbr == "original":
+            val = ut.float_or_none(self.formats[format]["vbr"])
+            vbr = f"{val}k" if val else None
+        elif vbr == "auto":
+            vbr = None
+        return ["-b:v", f"{vbr}"] if vbr else []
 
     def _ffmpeg_debug(self):
         debug = options.debug if options else None
@@ -177,7 +181,7 @@ class YoutubeVideo(QObject):
         opts += self._ffmpeg_use_gpu()
         opts += self._ffmpeg_source(start, end, format)
         opts += self._ffmpeg_codecs()
-        opts += self._ffmpeg_keep_vbr(format)
+        opts += self._ffmpeg_set_vbr(format)
         opts += self._ffmpeg_debug()
         opts += self._ffmpeg_xerror()
         return f"{ut.ffmpeg()}", opts + ["-y", f"{filename}"]
