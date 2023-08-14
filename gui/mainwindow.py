@@ -27,7 +27,7 @@ class AboutLabel(QLabel):
     def __init__(self):
         super().__init__("<font color=\"Grey\"><i>Created with"
                          "<font color=\"Red\">&#10084;"
-                         "</font> by AllatRa IT team</i></font>")
+                         "</font> for people</i></font>")
         self.setTextFormat(Qt.TextFormat.RichText)
 
 
@@ -48,8 +48,7 @@ fraction of their immense capabilities to everyone.
 консольные утилиты {yt_dlp_url} и {ffmpeg_url} и делает крошечную
 часть их огромных возможностей доступной каждому.
 
-<p>Inspired by the <a href="https://creativesociety.com">Creative Society</a>
-international project
+<p><i>Inspired by the idea of a creative society</i>
 """
 
     def __init__(self, size):

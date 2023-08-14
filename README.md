@@ -6,7 +6,7 @@ A simple GUI application for downloading full video or its fragments from YouTub
 
 Use tooltips to explore the features of the user interface. If a full video is downloaded, `yt-dlp` is used directly. Otherwise `ffmpeg` is used to get the fragment.
 
-_Inspired by the [Creative Society](https://creativesociety.com) international project!_
+_Inspired by the idea of a creative society._
 
 
 ## Requirements
