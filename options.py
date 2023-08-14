@@ -136,8 +136,9 @@ class Options(QWidget, ToolOptions):
         self.acodecComboBox.currentTextChanged.connect(self.set_audio_codec)
 
         vbrLabel = QLabel("VBR:")
-        vbrLabel.setToolTip("Set video bitrate when converting /\n"
-                            "Установить качество видео при конвертировании")
+        vbrLabel.setToolTip(
+            "Set video bitrate when converting (100K, 15M, ...) /\n"
+            "Установить качество видео при конвертировании")
         self.vbrComboBox = VideoBitrate()
         self.vbrComboBox.currentTextChanged.connect(self.set_video_bitrate)
         self.vbrComboBox.setEnabled(False)
