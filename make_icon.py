@@ -26,15 +26,15 @@ def get_components(color, linewidth):
 fig, ax = plt.subplots(figsize=(5, 5))
 
 # background layer (white)
-for item in get_components("w", 18.0):
+for item in get_components("w", 32.0):
     ax.add_patch(item)
 
 # foreground layer (black)
 for item in get_components("k", 12.0):
     ax.add_patch(item)
 
-ax.set(xlim=(-1.05, 1.05), xticks=[],
-       ylim=(-1.05, 1.05), yticks=[])
+ax.set(xlim=(-1.1, 1.1), xticks=[],
+       ylim=(-1.1, 1.1), yticks=[])
 ax.set_frame_on(False)
 
 plt.savefig("icons/ytcut.png", transparent=True)
