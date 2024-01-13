@@ -200,7 +200,7 @@ class YoutubeVideo(QObject):
                  "--format", self.formats[format]["format_id"],
                  "--remux-video", "mp4",
                  "--paths", f"{path}",
-                 "--output", f"{filename}"]
+                 "--output", f"{filename}.%(ext)s"]
         return f"{ut.yt_dlp()}", opts + [f"{self.url}"]
 
     def start_download(self, filename, start, end, format):
