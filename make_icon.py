@@ -6,23 +6,35 @@ import numpy as np
 
 plt.style.use('_mpl-gallery')
 
+
+def get_components(color, linewidth):
+    circle = Circle((0, 0), radius=1.0, color=color,
+                    fill=False, linewidth=linewidth)
+
+    t = np.array([a / 180. * np.pi for a in (150, 270, 30)])
+    x = 0.95 * np.cos(t)
+    y = 0.95 * np.sin(t)
+    triangle = Polygon(np.array([x, y]).T, color=color,
+                       fill=False, linewidth=linewidth)
+
+    dot = Circle((0, 0), radius=0.1 * linewidth / 12.0, color=color)
+
+    return (circle, triangle, dot)
+
+
 # plot
 fig, ax = plt.subplots(figsize=(5, 5))
 
-circle = Circle((0, 0), radius=1.0, color="k", fill=False, linewidth=12.0)
-ax.add_patch(circle)
+# background layer (white)
+for item in get_components("w", 32.0):
+    ax.add_patch(item)
 
-t = np.array([a / 180. * np.pi for a in (150, 270, 30)])
-x = 0.95 * np.cos(t)
-y = 0.95 * np.sin(t)
-triangle = Polygon(np.array([x, y]).T, color="k", fill=False, linewidth=12.0)
-ax.add_patch(triangle)
+# foreground layer (black)
+for item in get_components("k", 12.0):
+    ax.add_patch(item)
 
-circle = Circle((0, 0), radius=0.1, color="k")
-ax.add_patch(circle)
-
-ax.set(xlim=(-1.05, 1.05), xticks=[],
-       ylim=(-1.05, 1.05), yticks=[])
+ax.set(xlim=(-1.1, 1.1), xticks=[],
+       ylim=(-1.1, 1.1), yticks=[])
 ax.set_frame_on(False)
 
 plt.savefig("icons/ytcut.png", transparent=True)
