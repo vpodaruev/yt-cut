@@ -9,6 +9,8 @@ import sys
 
 from PyInstaller.__main__ import run as run_pyinstaller
 
+import utils as ut
+
 
 def read_file(fname):
     with open(fname, encoding='utf-8') as f:
@@ -143,7 +145,8 @@ def windows_set_version(exe, version):
 
 def copy_all_needs(dist):
     shutil.copytree("icons", dist/"icons", dirs_exist_ok=True)
-    shutil.copytree("tools", dist/"tools", dirs_exist_ok=True)
+    if ut.under_windows():
+        shutil.copytree("tools", dist/"tools", dirs_exist_ok=True)
 
 
 def make_archive(dist, version):
@@ -151,7 +154,8 @@ def make_archive(dist, version):
     arch = dist.with_name("yt-cut")
     os.rename(dist, arch)
     today = dt.date.today().strftime("%Y%m%d")
-    shutil.make_archive(f"yt-cut_v{version}+{today}_win10_x64", "zip",
+    osname = {'win32': 'win10', 'darwin': 'macos'}.get(OS_NAME, OS_NAME)
+    shutil.make_archive(f"yt-cut_v{version}+{today}_{osname}_x64", "zip",
                         root_dir=arch.parent, base_dir=arch, verbose=True)
     os.rename(arch, dist)    # restore the dist name
 
