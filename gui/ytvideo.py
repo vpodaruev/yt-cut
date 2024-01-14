@@ -3,6 +3,7 @@
 import json
 import re
 import pathlib
+import shutil
 
 from PyQt6.QtCore import (pyqtSignal, pyqtSlot, Qt, QObject, QProcess)
 from PyQt6.QtGui import QGuiApplication
@@ -191,7 +192,8 @@ class YoutubeVideo(QObject):
         path, filename = file.parent, file.stem
         opts = self._ytdl_cookies()
         try:
-            opts += ["--ffmpeg-location", f"{ut.ffmpeg()}",
+            ffmpeg = shutil.which(ut.ffmpeg())  # raise exception if no ffmpeg
+            opts += ["--ffmpeg-location", f"{ffmpeg}",
                      "--embed-thumbnail"]
         except RuntimeError:
             pass
@@ -200,13 +202,14 @@ class YoutubeVideo(QObject):
                  "--format", self.formats[format]["format_id"],
                  "--remux-video", "mp4",
                  "--paths", f"{path}",
-                 "--output", f"{filename}"]
+                 "--output", f"{filename}.%(ext)s"]
         return f"{ut.yt_dlp()}", opts + [f"{self.url}"]
 
     def start_download(self, filename, start, end, format):
         cmd, opts = self._by_yt_dlp(filename, start, end, format) \
                     if self._is_full_video(start, end) else \
                     self._by_ffmpeg(filename, start, end, format)
+        ut.logger().debug(f"{cmd} {opts}")
         self.p = QProcess()
         mode = QProcess.ProcessChannelMode
         self.p.setProcessChannelMode(mode.MergedChannels)

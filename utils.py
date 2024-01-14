@@ -4,6 +4,7 @@ import logging
 import math
 import re
 import pathlib
+import platform
 import shutil
 import sys
 from urllib.parse import urlparse, parse_qs
@@ -49,6 +50,10 @@ def yt_dlp():
 def ffmpeg():
     """Return path to `ffmpeg` executable"""
     return as_command(args.ffmpeg)
+
+
+def under_windows():
+    return platform.platform().startswith("Windows")
 
 
 def to_hhmmss(seconds, delim=":"):

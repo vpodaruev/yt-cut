@@ -1,9 +1,12 @@
 build/
 dist/
-env/
+venv/
+
 .ipynb*/
 __pycache__/
+
 tools/
 *.exe
-*.mp4
 *.spec
+
+*.mp4

@@ -9,7 +9,6 @@ from PyQt6.QtCore import (QObject, pyqtSignal)
 from PyQt6.QtWidgets import (QApplication, QMessageBox)
 
 import gui.mainwindow as mw
-import platform
 import utils as ut
 import version as vrs
 
@@ -70,13 +69,9 @@ class UncaughtHook(QObject):
             restore_on_error()
 
 
-def under_windows():
-    return platform.platform().startswith("Windows")
-
-
 if __name__ == "__main__":
-    yt_dlp_default = "tools/yt-dlp.exe" if under_windows() else "yt-dlp"
-    ffmpeg_default = "tools/ffmpeg.exe" if under_windows() else "ffmpeg"
+    yt_dlp_default = "tools/yt-dlp.exe" if ut.under_windows() else "yt-dlp"
+    ffmpeg_default = "tools/ffmpeg.exe" if ut.under_windows() else "ffmpeg"
 
     parser = ArgumentParser(description="Download parts of videos"
                             " from various social nets such as Youtube,"
