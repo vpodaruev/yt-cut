@@ -155,7 +155,8 @@ def make_archive(dist, version):
     os.rename(dist, arch)
     today = dt.date.today().strftime("%Y%m%d")
     osname = {'win32': 'win10', 'darwin': 'macos'}.get(OS_NAME, OS_NAME)
-    shutil.make_archive(f"yt-cut_v{version}+{today}_{osname}_x64", "zip",
+    format = "zip" if ut.under_windows() else "gztar"
+    shutil.make_archive(f"yt-cut_v{version}+{today}_{osname}_x64", format,
                         root_dir=arch.parent, base_dir=arch, verbose=True)
     os.rename(arch, dist)    # restore the dist name
 
