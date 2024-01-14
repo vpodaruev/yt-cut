@@ -12,8 +12,8 @@ def get_components(color, linewidth):
                     fill=False, linewidth=linewidth)
 
     t = np.array([a / 180. * np.pi for a in (150, 270, 30)])
-    x = 0.95 * np.cos(t)
-    y = 0.95 * np.sin(t)
+    x = 0.90 * np.cos(t)
+    y = 0.90 * np.sin(t)
     triangle = Polygon(np.array([x, y]).T, color=color,
                        fill=False, linewidth=linewidth)
 
