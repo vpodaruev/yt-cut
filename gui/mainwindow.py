@@ -65,6 +65,24 @@ fraction of their immense capabilities to everyone.
         QMessageBox.information(self.parent(), "About", self._about_text)
 
 
+class VideoButton(com.ToggleSwitch):
+    def __init__(self):
+        views = [(com.icon("icons/no_video.png"), "", "Enable video"),
+                 (com.icon("icons/video_on.png"), "", "Disable video")]
+        super().__init__(views)
+        self.setSizePolicy(QSizePolicy.Policy.Fixed,
+                           QSizePolicy.Policy.Fixed)
+
+
+class AudioButton(com.ToggleSwitch):
+    def __init__(self):
+        views = [(com.icon("icons/no_audio.png"), "", "Enable audio"),
+                 (com.icon("icons/audio_on.png"), "", "Disable audio")]
+        super().__init__(views)
+        self.setSizePolicy(QSizePolicy.Policy.Fixed,
+                           QSizePolicy.Policy.Fixed)
+
+
 class DownloadButton(com.ToggleSwitch):
     def __init__(self):
         views = [(com.icon("icons/cancel.png"),   "Cancel / Отменить",    ""),
@@ -98,6 +116,14 @@ class MainWindow(QMainWindow):
         self.progressBar.setValue(0)
         self.duration_in_sec = 1
 
+        self.videoButton = VideoButton()
+        self.videoButton.clicked.connect(self.toggle_video)
+        self.videoButton.setEnabled(True)
+
+        self.audioButton = AudioButton()
+        self.audioButton.clicked.connect(self.toggle_audio)
+        self.audioButton.setEnabled(True)
+
         self.downloadButton = DownloadButton()
         self.downloadButton.clicked.connect(self.download)
         self.downloadButton.setEnabled(False)
@@ -110,6 +136,8 @@ class MainWindow(QMainWindow):
         self.saveAs.changed.connect(self.showInFolderPushButton.setEnabled)
 
         downloadHBoxLayout = QHBoxLayout()
+        downloadHBoxLayout.addWidget(self.videoButton)
+        downloadHBoxLayout.addWidget(self.audioButton)
         downloadHBoxLayout.addWidget(self.downloadButton)
         downloadHBoxLayout.addWidget(self.showInFolderPushButton)
 
@@ -246,6 +274,16 @@ class MainWindow(QMainWindow):
             self.showInFolderPushButton.toggle()
             if ok:
                 self.show_in_folder()
+
+    def toggle_video(self):
+        self.videoButton.toggle()
+        if not (self.videoButton.on or self.audioButton.on):
+            self.audioButton.toggle()
+
+    def toggle_audio(self):
+        self.audioButton.toggle()
+        if not (self.videoButton.on or self.audioButton.on):
+            self.videoButton.toggle()
 
     def show_in_folder(self):
         if not self.downloadButton.on:
