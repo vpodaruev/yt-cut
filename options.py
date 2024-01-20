@@ -261,6 +261,7 @@ class Options(QWidget, ToolOptions):
     def toggle_xerror(self, ok):
         self.xerror = ok
 
+    @pyqtSlot()
     def update_third_party(self):
         QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         p = QProcess()

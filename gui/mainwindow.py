@@ -186,7 +186,7 @@ class MainWindow(QMainWindow):
         self.ytLink.setEnabled(True)
         self.ytVideo = None
 
-    @pyqtSlot(ytv.YoutubeVideo)
+    @pyqtSlot(ytv.YtVideo)
     def got_yt_link(self, video):
         self.ytVideo = video
         self.ytVideo.finished.connect(self.download_finished)

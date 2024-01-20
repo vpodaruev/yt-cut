@@ -19,7 +19,7 @@ default_channel = "Channel / Канал"
 default_format = "best available format / наилучший доступный формат"
 
 
-class YoutubeVideo(QObject):
+class YtVideo(QObject):
     info_loaded = pyqtSignal()
     progress = pyqtSignal(float, str)
     finished = pyqtSignal(bool, str)
@@ -32,23 +32,19 @@ class YoutubeVideo(QObject):
         self.channel = default_channel
         self.thumbnail = None
         self.duration = "0"
-        self.formats = None
-        self.p = None
-        self.progress_re = re.compile(r"\[download\]\s+(\d{1,3}.\d)[%]")
-        self.time_re = re.compile(r"time=((\d\d[:]){2}\d\d[.]\d\d)")
-        self.err_re = re.compile(r"[Ee]rror")
-        self.debug = False
-        self.error = ""
 
-    def _ytdl_cookies(self):
-        browser = options.browser if options else None
-        return ["--cookies-from-browser", browser] if browser else []
+        self._formats = None
+        self._p = None
+        self._error = ""
+        self._progress_re = re.compile(r"\[download\]\s+(\d{1,3}.\d)[%]")
+        self._time_re = re.compile(r"time=((\d\d[:]){2}\d\d[.]\d\d)")
+        self._err_re = re.compile(r"[Ee]rror")
 
     def request_info(self):
-        self.p = QProcess()
-        self.p.finished.connect(self.process_info)
-        opts = self._ytdl_cookies()
-        self.p.start(f"{ut.yt_dlp()}",
+        self._p = QProcess()
+        self._p.finished.connect(self.process_info)
+        opts = self._use_cookies()
+        self._p.start(f"{ut.yt_dlp()}",
                      opts + ["--no-playlist", "--print",
                              '{ "channel": %(channel)j'
                              ', "uploader": %(uploader)j'
@@ -62,7 +58,7 @@ class YoutubeVideo(QObject):
     def process_info(self):
         QGuiApplication.restoreOverrideCursor()
         try:
-            js = json.loads(ut.check_output(self.p))
+            js = json.loads(ut.check_output(self._p))
             self.channel = js["channel"] if js["channel"] != "NA" \
                 else js["uploader"]
             self.title = js["title"]
@@ -73,21 +69,16 @@ class YoutubeVideo(QObject):
             ut.logger().exception(f"{e}")
             self.info_failed.emit(f"{e}")
         finally:
-            self.p = None
-
-    def _prefer_avc(self):
-        if options and options.prefer_avc:
-            return ["-S", "quality,vcodec:h264,acodec:mp3"]
-        return []
+            self._p = None
 
     def request_formats(self, filter="all[vcodec!=none]+ba"
                                      "/all[vcodec!=none][acodec!=none]/b*"):
         QGuiApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        self.p = QProcess()
-        opts = self._ytdl_cookies()
+        self._p = QProcess()
+        opts = self._use_cookies()
         opts += self._prefer_avc()
         opts += ["--format", filter] if filter else []
-        self.p.start(f"{ut.yt_dlp()}",
+        self._p.start(f"{ut.yt_dlp()}",
                      opts + ["--no-playlist", "--print",
                              '{ "format_id": %(format_id)j'
                              ', "ext": %(ext)j'
@@ -101,32 +92,79 @@ class YoutubeVideo(QObject):
                              ', "format_note": %(format_note)j'
                              ', "urls": %(urls)j }, ',
                              f"{self.url}"])
-        if self.p.waitForFinished():
+        if self._p.waitForFinished():
             QGuiApplication.restoreOverrideCursor()
-            if result := ut.check_output(self.p).rstrip(",\n\r \t"):
+            if result := ut.check_output(self._p).rstrip(",\n\r \t"):
                 formats = json.loads(f'{{ "formats": [{result}] }}')["formats"]
-                self.formats = dict()
+                self._formats = dict()
                 for i, fmt in zip(range(len(formats)), formats):
                     desc = ut.make_description(fmt)
-                    self.formats.update({f"{i+1:02d}. {desc}": fmt})
+                    self._formats.update({f"{i+1:02d}. {desc}": fmt})
                 return
             else:
-                raise ut.CalledProcessFailed(self.p)
+                raise ut.CalledProcessFailed(self._p)
         QGuiApplication.restoreOverrideCursor()
-        raise ut.TimeoutExpired(self.p)
+        raise ut.TimeoutExpired(self._p)
 
     def get_formats(self):
-        return list(self.formats.keys())
+        return list(self._formats.keys())
 
     def get_suffix(self, start, finish, format):
-        res = ut.format_resolution(self.formats[format])
+        res = ut.format_resolution(self._formats[format])
         if self._is_full_video(start, finish):
             return f"_{res}"
         tm_code = ut.as_suffix(start, finish)
         return f"_{res}_{tm_code}"
 
     def get_extension(self, format):
-        return ut.str_or_none(self.formats[format]["ext"], "mp4")
+        return ut.str_or_none(self._formats[format]["ext"], "mp4")
+
+    def start_download(self, filename, start, end, format):
+        cmd, opts = self._by_yt_dlp(filename, start, end, format) \
+                    if self._is_full_video(start, end) else \
+                    self._by_ffmpeg(filename, start, end, format)
+        ut.logger().debug(f"{cmd} {opts}")
+        self._p = QProcess()
+        mode = QProcess.ProcessChannelMode
+        self._p.setProcessChannelMode(mode.MergedChannels)
+        self._p.readyRead.connect(self.parse_progress)
+        self._p.finished.connect(self.finish_download)
+        self._p.start(cmd, opts)
+
+    @pyqtSlot()
+    def parse_progress(self):
+        result = ut.decode(self._p.readAll())
+        ut.logger().debug(result)
+        if m := re.search(self._progress_re, result):
+            val = float(m.group(1))
+            self.progress.emit(val, "%")
+        elif m := re.search(self._time_re, result):
+            time = m.group(1)
+            self.progress.emit(ut.from_ffmpeg_time(time), "s")
+        elif m := re.search(self._err_re, result):
+            self._error = result
+
+    def cancel_download(self):
+        if self._p.state() == QProcess.ProcessState.NotRunning:
+            self.finish_download(self._p.exitCode(), self._p.exitStatus())
+        else:
+            self._p.kill()
+
+    @pyqtSlot(int, QProcess.ExitStatus)
+    def finish_download(self, code, status):
+        self._p = None
+        ok = (status == QProcess.ExitStatus.NormalExit) and (code == 0)
+        err, self._error = self._error, ""
+        self.finished.emit(ok, err)
+
+    def _use_cookies(self):
+        browser = options.browser if options else None
+        return ["--cookies-from-browser", browser] if browser else []
+
+    def _prefer_avc(self):
+        if options and options.prefer_avc:
+            return ["-S", "quality,vcodec:h264,acodec:mp3"]
+        return []
 
     def _ffmpeg_use_gpu(self):
         codecs = options.codecs
@@ -142,7 +180,7 @@ class YoutubeVideo(QObject):
             time += ["-ss", f"{start}"]
         if end != self.duration:         # fix video trimming at the end
             time += ["-to", f"{end}"]
-        urls = self.formats[format]["urls"].split()
+        urls = self._formats[format]["urls"].split()
         if len(urls) == 2:
             video, audio = urls
             return time + ["-i", f"{video}"] + \
@@ -160,7 +198,7 @@ class YoutubeVideo(QObject):
     def _ffmpeg_set_vbr(self, format):
         vbr = options.vbr if options else None
         if vbr == "original":
-            val = ut.float_or_none(self.formats[format]["vbr"])
+            val = ut.float_or_none(self._formats[format]["vbr"])
             vbr = f"{val}k" if val else None
         elif vbr == "auto":
             vbr = None
@@ -190,7 +228,7 @@ class YoutubeVideo(QObject):
     def _by_yt_dlp(self, filename, start, end, format):
         file = pathlib.Path(filename)
         path, filename = file.parent, file.stem
-        opts = self._ytdl_cookies()
+        opts = self._use_cookies()
         try:
             ffmpeg = shutil.which(ut.ffmpeg())  # raise exception if no ffmpeg
             opts += ["--ffmpeg-location", f"{ffmpeg}",
@@ -199,46 +237,8 @@ class YoutubeVideo(QObject):
             pass
         opts += ["--no-playlist",
                  "--force-overwrites",
-                 "--format", self.formats[format]["format_id"],
+                 "--format", self._formats[format]["format_id"],
                  "--remux-video", "mp4",
                  "--paths", f"{path}",
                  "--output", f"{filename}.%(ext)s"]
         return f"{ut.yt_dlp()}", opts + [f"{self.url}"]
-
-    def start_download(self, filename, start, end, format):
-        cmd, opts = self._by_yt_dlp(filename, start, end, format) \
-                    if self._is_full_video(start, end) else \
-                    self._by_ffmpeg(filename, start, end, format)
-        ut.logger().debug(f"{cmd} {opts}")
-        self.p = QProcess()
-        mode = QProcess.ProcessChannelMode
-        self.p.setProcessChannelMode(mode.MergedChannels)
-        self.p.readyRead.connect(self.parse_progress)
-        self.p.finished.connect(self.finish_download)
-        self.p.start(cmd, opts)
-
-    @pyqtSlot()
-    def parse_progress(self):
-        result = ut.decode(self.p.readAll())
-        ut.logger().debug(result)
-        if m := re.search(self.progress_re, result):
-            val = float(m.group(1))
-            self.progress.emit(val, "%")
-        elif m := re.search(self.time_re, result):
-            time = m.group(1)
-            self.progress.emit(ut.from_ffmpeg_time(time), "s")
-        elif m := re.search(self.err_re, result):
-            self.error = result
-
-    def cancel_download(self):
-        if self.p.state() == QProcess.ProcessState.NotRunning:
-            self.finish_download(self.p.exitCode(), self.p.exitStatus())
-        else:
-            self.p.kill()
-
-    @pyqtSlot(int, QProcess.ExitStatus)
-    def finish_download(self, code, status):
-        self.p = None
-        ok = (status == QProcess.ExitStatus.NormalExit) and (code == 0)
-        err, self.error = self.error, ""
-        self.finished.emit(ok, err)

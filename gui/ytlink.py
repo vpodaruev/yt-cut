@@ -12,7 +12,7 @@ import utils as ut
 
 
 class YoutubeLink(QWidget):
-    got_link = pyqtSignal(ytv.YoutubeVideo)
+    got_link = pyqtSignal(ytv.YtVideo)
     edit_link = pyqtSignal()
 
     def __init__(self, *args, **kwargs):
@@ -84,7 +84,7 @@ class YoutubeLink(QWidget):
             self.linkLineEdit.clear()
             return
 
-        self.video = ytv.YoutubeVideo(url)
+        self.video = ytv.YtVideo(url)
         self.video.info_loaded.connect(self.process_info)
         self.video.info_failed.connect(self.process_error)
         self.video.request_info()
