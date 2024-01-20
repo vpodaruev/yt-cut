@@ -34,6 +34,7 @@ class YtVideo(QObject):
         self.duration = "0"
 
         self._formats = None
+        self._content = dict(video=True, audio=True)
         self._p = None
         self._error = ""
         self._progress_re = re.compile(r"\[download\]\s+(\d{1,3}.\d)[%]")
@@ -79,19 +80,19 @@ class YtVideo(QObject):
         opts += self._prefer_avc()
         opts += ["--format", filter] if filter else []
         self._p.start(f"{ut.yt_dlp()}",
-                     opts + ["--no-playlist", "--print",
-                             '{ "format_id": %(format_id)j'
-                             ', "ext": %(ext)j'
-                             ', "resolution": %(resolution)j'
-                             ', "width": %(width)j'
-                             ', "height": %(height)j'
-                             ', "vbr": %(vbr)j'
-                             ', "vcodec": %(vcodec)j'
-                             ', "acodec": %(acodec)j'
-                             ', "size": %(filesize,filesize_approx)j'
-                             ', "format_note": %(format_note)j'
-                             ', "urls": %(urls)j }, ',
-                             f"{self.url}"])
+                      opts + ["--no-playlist", "--print",
+                              '{ "format_id": %(format_id)j'
+                              ', "ext": %(ext)j'
+                              ', "resolution": %(resolution)j'
+                              ', "width": %(width)j'
+                              ', "height": %(height)j'
+                              ', "vbr": %(vbr)j'
+                              ', "vcodec": %(vcodec)j'
+                              ', "acodec": %(acodec)j'
+                              ', "size": %(filesize,filesize_approx)j'
+                              ', "format_note": %(format_note)j'
+                              ', "urls": %(urls)j }, ',
+                              f"{self.url}"])
         if self._p.waitForFinished():
             QGuiApplication.restoreOverrideCursor()
             if result := ut.check_output(self._p).rstrip(",\n\r \t"):
@@ -118,6 +119,10 @@ class YtVideo(QObject):
 
     def get_extension(self, format):
         return ut.str_or_none(self._formats[format]["ext"], "mp4")
+
+    def set_content(self, content):
+        self._content.update(video=content["video"],
+                             audio=content["audio"])
 
     def start_download(self, filename, start, end, format):
         cmd, opts = self._by_yt_dlp(filename, start, end, format) \
@@ -212,6 +217,14 @@ class YtVideo(QObject):
         xerr = options.xerror if options else None
         return ["-xerror"] if xerr else []
 
+    def _ffmpeg_output(self):
+        op = []
+        if not self._content["video"]:
+            op += ["-vn"]
+        if not self._content["audio"]:
+            op += ["-an"]
+        return op
+
     def _is_full_video(self, start, end):
         return ut.to_seconds(start) == 0 and end == self.duration
 
@@ -223,6 +236,7 @@ class YtVideo(QObject):
         opts += self._ffmpeg_set_vbr(format)
         opts += self._ffmpeg_debug()
         opts += self._ffmpeg_xerror()
+        opts += self._ffmpeg_output()
         return f"{ut.ffmpeg()}", opts + ["-y", f"{filename}"]
 
     def _by_yt_dlp(self, filename, start, end, format):

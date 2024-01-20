@@ -67,8 +67,10 @@ fraction of their immense capabilities to everyone.
 
 class VideoButton(com.ToggleSwitch):
     def __init__(self):
-        views = [(com.icon("icons/no_video.png"), "", "Enable video"),
-                 (com.icon("icons/video_on.png"), "", "Disable video")]
+        views = [(com.icon("icons/no_video.png"),
+                  "", "Enable video / Включить видео"),
+                 (com.icon("icons/video_on.png"),
+                  "", "Disable video / Отключить видео")]
         super().__init__(views)
         self.setSizePolicy(QSizePolicy.Policy.Fixed,
                            QSizePolicy.Policy.Fixed)
@@ -76,8 +78,10 @@ class VideoButton(com.ToggleSwitch):
 
 class AudioButton(com.ToggleSwitch):
     def __init__(self):
-        views = [(com.icon("icons/no_audio.png"), "", "Enable audio"),
-                 (com.icon("icons/audio_on.png"), "", "Disable audio")]
+        views = [(com.icon("icons/no_audio.png"),
+                  "", "Enable audio / Включить звук"),
+                 (com.icon("icons/audio_on.png"),
+                  "", "Disable audio / Отключить звук")]
         super().__init__(views)
         self.setSizePolicy(QSizePolicy.Policy.Fixed,
                            QSizePolicy.Policy.Fixed)
@@ -275,16 +279,21 @@ class MainWindow(QMainWindow):
             if ok:
                 self.show_in_folder()
 
+    @pyqtSlot()
     def toggle_video(self):
         self.videoButton.toggle()
         if not (self.videoButton.on or self.audioButton.on):
             self.audioButton.toggle()
+        self._reset_content()
 
+    @pyqtSlot()
     def toggle_audio(self):
         self.audioButton.toggle()
         if not (self.videoButton.on or self.audioButton.on):
             self.videoButton.toggle()
+        self._reset_content()
 
+    @pyqtSlot()
     def show_in_folder(self):
         if not self.downloadButton.on:
             self.showInFolderPushButton.toggle()
@@ -307,3 +316,9 @@ class MainWindow(QMainWindow):
             "saveAs": self.saveAs.dump() if self.saveAs else None,
             "options": ytv.options.dump() if ytv.options else None,
         }
+
+    def _reset_content(self):
+        self.ytVideo.set_content(dict(
+            video=self.videoButton.on,
+            audio=self.audioButton.on,
+        ))
