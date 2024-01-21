@@ -18,6 +18,10 @@ default_title = "Title / Название"
 default_channel = "Channel / Канал"
 default_format = "best available format / наилучший доступный формат"
 
+# formats to save media files
+video_format = "mp4"
+audio_format = "m4a"
+
 
 class YtVideo(QObject):
     info_loaded = pyqtSignal()
@@ -110,22 +114,22 @@ class YtVideo(QObject):
     def get_all_formats(self):
         return list(self._formats.keys())
 
-    def get_format(self):
+    def get_media_format(self):
         if self._content["video"]:
-            return "mp4"
+            return video_format
         elif self._content["audio"]:
-            return "m4a"
+            return audio_format
         raise RuntimeError("no video, no audio")
 
-    def get_suffix(self, start, finish, format):
+    def get_affix(self, start, finish, format):
         res = ut.format_resolution(self._formats[format])
         if self._is_full_video(start, finish):
             return f"_{res}"
         tm_code = ut.as_suffix(start, finish)
         return f"_{res}_{tm_code}"
 
-    def get_extension(self):
-        return f".{self.get_format()}"
+    def get_suffix(self):
+        return f".{self.get_media_format()}"
 
     def set_content(self, content):
         self._content.update(video=content["video"],
@@ -262,7 +266,7 @@ class YtVideo(QObject):
         if not self._content["audio"]:
             op += ["--postprocessor-args", "Merger+ffmpeg_o:-an"]
 
-        op += ["--remux-video", self.get_format()]
+        op += ["--remux-video", self.get_media_format()]
 
         return op
 

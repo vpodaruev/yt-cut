@@ -206,7 +206,9 @@ class MainWindow(QMainWindow):
         if len(name) > max_name_len:
             name = name[: max_name_len]
         format = self.timeSpan.get_format()
-        file = name + self.ytVideo.get_suffix(start, finish, format) + ".mp4"
+        file = "".join([name,
+                        self.ytVideo.get_affix(start, finish, format),
+                        self.ytVideo.get_suffix()])
         self.saveAs.set_filename(file)
         self.saveAs.setEnabled(True)
 
@@ -220,8 +222,6 @@ class MainWindow(QMainWindow):
     def download(self):
         if self.downloadButton.on:
             file = self.saveAs.get_filename()
-            if not file.endswith(".mp4"):
-                file = file + ".mp4"
             try:
                 need_approve = pl.Path(file).exists()
             except OSError as e:
@@ -322,3 +322,4 @@ class MainWindow(QMainWindow):
             video=self.videoButton.on,
             audio=self.audioButton.on,
         ))
+        self.saveAs.set_suffix(self.ytVideo.get_suffix())
