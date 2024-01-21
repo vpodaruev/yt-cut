@@ -107,8 +107,15 @@ class YtVideo(QObject):
         QGuiApplication.restoreOverrideCursor()
         raise ut.TimeoutExpired(self._p)
 
-    def get_formats(self):
+    def get_all_formats(self):
         return list(self._formats.keys())
+
+    def get_format(self):
+        if self._content["video"]:
+            return "mp4"
+        elif self._content["audio"]:
+            return "m4a"
+        raise RuntimeError("no video, no audio")
 
     def get_suffix(self, start, finish, format):
         res = ut.format_resolution(self._formats[format])
@@ -117,17 +124,15 @@ class YtVideo(QObject):
         tm_code = ut.as_suffix(start, finish)
         return f"_{res}_{tm_code}"
 
-    def get_extension(self, format):
-        return ut.str_or_none(self._formats[format]["ext"], "mp4")
+    def get_extension(self):
+        return f".{self.get_format()}"
 
     def set_content(self, content):
         self._content.update(video=content["video"],
                              audio=content["audio"])
 
     def start_download(self, filename, start, end, format):
-        cmd, opts = self._by_yt_dlp(filename, start, end, format) \
-                    if self._is_full_video(start, end) else \
-                    self._by_ffmpeg(filename, start, end, format)
+        cmd, opts = self._download_command(filename, start, end, format)
         ut.logger().debug(f"{cmd} {opts}")
         self._p = QProcess()
         mode = QProcess.ProcessChannelMode
@@ -228,6 +233,12 @@ class YtVideo(QObject):
     def _is_full_video(self, start, end):
         return ut.to_seconds(start) == 0 and end == self.duration
 
+    def _download_command(self, filename, start, end, format):
+        if self._is_full_video(start, end):
+            return self._by_yt_dlp(filename, start, end, format)
+        else:
+            return self._by_ffmpeg(filename, start, end, format)
+
     def _by_ffmpeg(self, filename, start, end, format):
         opts = []
         opts += self._ffmpeg_use_gpu()
@@ -239,9 +250,23 @@ class YtVideo(QObject):
         opts += self._ffmpeg_output()
         return f"{ut.ffmpeg()}", opts + ["-y", f"{filename}"]
 
-    def _by_yt_dlp(self, filename, start, end, format):
+    def _yt_dlp_output(self, filename):
         file = pathlib.Path(filename)
         path, filename = file.parent, file.stem
+
+        op = ["--paths", f"{path}",
+              "--output", f"{filename}.%(ext)s"]
+
+        if not self._content["video"]:
+            op += ["--postprocessor-args", "Merger+ffmpeg_o:-vn"]
+        if not self._content["audio"]:
+            op += ["--postprocessor-args", "Merger+ffmpeg_o:-an"]
+
+        op += ["--remux-video", self.get_format()]
+
+        return op
+
+    def _by_yt_dlp(self, filename, start, end, format):
         opts = self._use_cookies()
         try:
             ffmpeg = shutil.which(ut.ffmpeg())  # raise exception if no ffmpeg
@@ -251,8 +276,6 @@ class YtVideo(QObject):
             pass
         opts += ["--no-playlist",
                  "--force-overwrites",
-                 "--format", self._formats[format]["format_id"],
-                 "--remux-video", "mp4",
-                 "--paths", f"{path}",
-                 "--output", f"{filename}.%(ext)s"]
+                 "--format", self._formats[format]["format_id"]]
+        opts += self._yt_dlp_output(filename)
         return f"{ut.yt_dlp()}", opts + [f"{self.url}"]
