@@ -65,7 +65,7 @@ class SaveAsFile(QWidget):
         self.saveAsLineEdit.setToolTip(self._with_suffix(file))
         self.changed.emit(bool(file))
 
-    def reset(self):
+    def reset(self, suffix=True):
         name = self.get_filename()
         if not name:
             return  # nothing to do
@@ -73,7 +73,8 @@ class SaveAsFile(QWidget):
         if tmp.is_dir():
             self.directory = tmp
         self.saveAsLineEdit.clear()
-        self.set_suffix(default_suffix)
+        if suffix:
+            self.set_suffix(default_suffix)
 
     @pyqtSlot(str)
     def set_filename(self, file):

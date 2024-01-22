@@ -5,7 +5,7 @@ from pathvalidate import sanitize_filename
 import platform
 import shutil
 
-from PyQt6.QtCore import pyqtSlot, Qt, QSize, QUrl, QProcess
+from PyQt6.QtCore import pyqtSignal, pyqtSlot, Qt, QSize, QUrl, QProcess
 from PyQt6.QtGui import QDesktopServices
 from PyQt6.QtWidgets import (
      QWidget, QLabel, QToolButton, QVBoxLayout, QHBoxLayout,
@@ -87,6 +87,44 @@ class AudioButton(com.ToggleSwitch):
                            QSizePolicy.Policy.Fixed)
 
 
+class ContentSwitcher(QWidget):
+    stateChanged = pyqtSignal()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.videoButton = VideoButton()
+        self.videoButton.clicked.connect(self.toggle_video)
+        self.videoButton.setEnabled(True)
+
+        self.audioButton = AudioButton()
+        self.audioButton.clicked.connect(self.toggle_audio)
+        self.audioButton.setEnabled(True)
+
+        layout = QHBoxLayout()
+        layout.addWidget(self.videoButton)
+        layout.addWidget(self.audioButton)
+        self.setLayout(layout)
+
+    def checkState(self):
+        return dict(video=self.videoButton.on,
+                    audio=self.audioButton.on)
+
+    @pyqtSlot()
+    def toggle_video(self):
+        self.videoButton.toggle()
+        if not (self.videoButton.on or self.audioButton.on):
+            self.audioButton.toggle()
+        self.stateChanged.emit()
+
+    @pyqtSlot()
+    def toggle_audio(self):
+        self.audioButton.toggle()
+        if not (self.videoButton.on or self.audioButton.on):
+            self.videoButton.toggle()
+        self.stateChanged.emit()
+
+
 class DownloadButton(com.ToggleSwitch):
     def __init__(self):
         views = [(com.icon("icons/cancel.png"),   "Cancel / Отменить",    ""),
@@ -94,6 +132,16 @@ class DownloadButton(com.ToggleSwitch):
         super().__init__(views)
         self.setSizePolicy(QSizePolicy.Policy.Expanding,
                            QSizePolicy.Policy.Fixed)
+
+
+class ShowInFolderButton(com.ToggleSwitch):
+    def __init__(self):
+        views = [(com.icon("icons/showInFolder.png"), "",
+                  "Show in folder / Показать в папке"),
+                 (com.icon("icons/wait.png"), "",
+                  "Show in folder when download is complete /\n"
+                  "Показать в папке по завершению загрузки")]
+        super().__init__(views)
 
 
 class MainWindow(QMainWindow):
@@ -120,28 +168,23 @@ class MainWindow(QMainWindow):
         self.progressBar.setValue(0)
         self.duration_in_sec = 1
 
-        self.videoButton = VideoButton()
-        self.videoButton.clicked.connect(self.toggle_video)
-        self.videoButton.setEnabled(True)
-
-        self.audioButton = AudioButton()
-        self.audioButton.clicked.connect(self.toggle_audio)
-        self.audioButton.setEnabled(True)
+        self.contentSwitcher = ContentSwitcher()
+        self.contentSwitcher.stateChanged.connect(self.reset_content)
+        self.contentSwitcher.setEnabled(False)
 
         self.downloadButton = DownloadButton()
         self.downloadButton.clicked.connect(self.download)
         self.downloadButton.setEnabled(False)
         self.saveAs.changed.connect(self.downloadButton.setEnabled)
 
-        self.showInFolderPushButton = com.ShowInFolderButton()
+        self.showInFolderPushButton = ShowInFolderButton()
         self.showInFolderPushButton.turn_on(False)
         self.showInFolderPushButton.clicked.connect(self.show_in_folder)
         self.showInFolderPushButton.setEnabled(False)
         self.saveAs.changed.connect(self.showInFolderPushButton.setEnabled)
 
         downloadHBoxLayout = QHBoxLayout()
-        downloadHBoxLayout.addWidget(self.videoButton)
-        downloadHBoxLayout.addWidget(self.audioButton)
+        downloadHBoxLayout.addWidget(self.contentSwitcher)
         downloadHBoxLayout.addWidget(self.downloadButton)
         downloadHBoxLayout.addWidget(self.showInFolderPushButton)
 
@@ -180,6 +223,7 @@ class MainWindow(QMainWindow):
     @pyqtSlot()
     def reset(self):
         self.progressBar.setValue(0)
+        self.contentSwitcher.setEnabled(False)
         self.downloadButton.turn_on(True)
         self.showInFolderPushButton.turn_on(False)
         self.saveAs.reset()
@@ -211,10 +255,13 @@ class MainWindow(QMainWindow):
                         self.ytVideo.get_suffix()])
         self.saveAs.set_filename(file)
         self.saveAs.setEnabled(True)
+        self.reset_content()
+        self.contentSwitcher.setEnabled(True)
 
     @pyqtSlot()
     def edit_interval(self):
-        self.saveAs.reset()
+        self.contentSwitcher.setEnabled(False)
+        self.saveAs.reset(suffix=False)
         self.saveAs.setEnabled(False)
         self.progressBar.setValue(0)
 
@@ -240,6 +287,7 @@ class MainWindow(QMainWindow):
             self.ytLink.lock()
             self.timeSpan.lock()
             self.saveAs.lock()
+            self.contentSwitcher.setEnabled(False)
             self.downloadButton.toggle()
             self.duration_in_sec = ut.to_seconds(f) - ut.to_seconds(s)
             self.progressBar.reset()
@@ -271,6 +319,7 @@ class MainWindow(QMainWindow):
         elif errmsg:
             QMessageBox.critical(self.parent(), "Error", errmsg)
         self.downloadButton.toggle()
+        self.contentSwitcher.setEnabled(True)
         self.ytLink.unlock()
         self.timeSpan.unlock()
         self.saveAs.unlock()
@@ -280,18 +329,10 @@ class MainWindow(QMainWindow):
                 self.show_in_folder()
 
     @pyqtSlot()
-    def toggle_video(self):
-        self.videoButton.toggle()
-        if not (self.videoButton.on or self.audioButton.on):
-            self.audioButton.toggle()
-        self._reset_content()
-
-    @pyqtSlot()
-    def toggle_audio(self):
-        self.audioButton.toggle()
-        if not (self.videoButton.on or self.audioButton.on):
-            self.videoButton.toggle()
-        self._reset_content()
+    def reset_content(self):
+        state = self.contentSwitcher.checkState()
+        self.ytVideo.set_content(state)
+        self.saveAs.set_suffix(self.ytVideo.get_suffix())
 
     @pyqtSlot()
     def show_in_folder(self):
@@ -316,10 +357,3 @@ class MainWindow(QMainWindow):
             "saveAs": self.saveAs.dump() if self.saveAs else None,
             "options": ytv.options.dump() if ytv.options else None,
         }
-
-    def _reset_content(self):
-        self.ytVideo.set_content(dict(
-            video=self.videoButton.on,
-            audio=self.audioButton.on,
-        ))
-        self.saveAs.set_suffix(self.ytVideo.get_suffix())
