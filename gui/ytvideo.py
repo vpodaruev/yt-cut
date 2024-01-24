@@ -261,12 +261,13 @@ class YtVideo(QObject):
         op = ["--paths", f"{path}",
               "--output", f"{filename}.%(ext)s"]
 
+        if self._content["video"]:
+            op += ["--remux-video", self.get_media_format()]
+
         if not self._content["video"]:
-            op += ["--postprocessor-args", "Merger+ffmpeg_o:-vn"]
+            op += ["--extract-audio"]
         if not self._content["audio"]:
             op += ["--postprocessor-args", "Merger+ffmpeg_o:-an"]
-
-        op += ["--remux-video", self.get_media_format()]
 
         return op
 
