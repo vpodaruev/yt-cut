@@ -267,8 +267,11 @@ class YtVideo(QObject):
         if not self._content["video"]:
             op += ["--extract-audio"]
         if not self._content["audio"]:
-            op += ["--postprocessor-args", "Merger+ffmpeg_o:-an"]
-
+            tmp = f'"{path/filename}.video.%(ext)s"'
+            op += ["--exec", f"after_move:{ut.ffmpeg()}"
+                             f" -i %(filepath)q -c copy -an -y {tmp}",
+                   "--exec", f"after_move:{ut.move()}"
+                             f" {tmp} %(filepath)q"]
         return op
 
     def _by_yt_dlp(self, filename, start, end, format):
