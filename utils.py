@@ -56,6 +56,14 @@ def under_windows():
     return platform.platform().startswith("Windows")
 
 
+def move():
+    """Return path to `move` (rename) OS command"""
+    if under_windows():
+        return f'{as_command("move")} /y'
+
+    return f'{as_command("mv")} -f'
+
+
 def to_hhmmss(seconds, delim=":"):
     seconds = int(seconds)
     minutes = seconds // 60
